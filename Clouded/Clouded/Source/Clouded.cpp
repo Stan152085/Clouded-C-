@@ -6,6 +6,8 @@
 #include "SFML/System.hpp"
 #include "SFML/Window.hpp"
 
+#include "Resources/GLTFLoader.h"
+
 int main()
 {
 	sf::Window window;
@@ -13,6 +15,9 @@ int main()
 
 	window.create(mode, "Clouded");
 	// game initialization
+
+  resources::GLTFLoader loader;
+  loader.Run();
 
 	while (window.isOpen())
 	{
