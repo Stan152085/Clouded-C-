@@ -18,10 +18,10 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\stdafx.h">
+    <ClInclude Include="Source\targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Include\targetver.h">
+    <ClInclude Include="Source\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

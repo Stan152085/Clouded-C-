@@ -157,8 +157,8 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Include\stdafx.h" />
-    <ClInclude Include="Include\targetver.h" />
+    <ClInclude Include="Source\stdafx.h" />
+    <ClInclude Include="Source\targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Clouded.cpp" />
