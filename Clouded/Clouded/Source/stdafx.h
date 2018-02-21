@@ -6,8 +6,16 @@
 #pragma once
 
 #include "targetver.h"
+
+// our includes
 #include "Math\math_defines.h"
 
+// std includes
+#include <vector>
+#include <string>
+#include <assert.h>
+
+// required std includes for the forward declared header
 #include <stdio.h>
 #include <tchar.h>
 

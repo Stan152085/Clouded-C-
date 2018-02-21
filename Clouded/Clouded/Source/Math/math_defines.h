@@ -1,7 +1,7 @@
 #pragma once
-#include "../stdafx.h"
-#include "common.hpp"
-#include "matrix.hpp"
+#include "stdafx.h"
+#include "glm/common.hpp"
+#include "glm/matrix.hpp"
 
 namespace math
 {

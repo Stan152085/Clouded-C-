@@ -1,13 +1,9 @@
-#include "Utilities\Serialization.h"
-#include "Utilities\FileWriter.h"
-#include "Utilities\FileReader.h"
+#include "stdafx.h"
+#include "Serialization.h"
+#include "FileWriter.h"
+#include "FileReader.h"
 
-#include "Utilities\Json\json.h"
-
-// serializable structs
-#include "Shading/Color.h"
-#include "Math\Vec2.h"
-#include "Math\Vec3.h"
+#include "Json\json.h"
 
 //-----------------------------------------------
 // File IO
@@ -138,38 +134,6 @@ void Serializer::Add(const std::string& a_rName, size_t a_value)
 	Root()[a_rName] = a_value;
 }
 
-void Serializer::Add(const std::string& a_rName, const Vec2& a_rValue)
-{
-	StepIn(a_rName);
-
-	Root()["x"] = a_rValue.x;
-	Root()["y"] = a_rValue.y;
-
-	StepOut();
-}
-
-void Serializer::Add(const std::string& a_rName, const Vec3& a_rValue)
-{
-	StepIn(a_rName);
-
-	Root()["x"] = a_rValue.x;
-	Root()["y"] = a_rValue.y;
-	Root()["z"] = a_rValue.z;
-
-	StepOut();
-}
-
-void Serializer::Add(const std::string& a_rName, const Color & a_rValue)
-{
-	StepIn(a_rName);
-
-	Root()["r"] = a_rValue.r;
-	Root()["g"] = a_rValue.g;
-	Root()["b"] = a_rValue.b;
-
-	StepOut();
-}
-
 void Serializer::Add(const std::string& a_rName, const std::string& a_rValue)
 {
 	Root()[a_rName] = a_rValue;
@@ -202,38 +166,6 @@ void Serializer::Get(const std::string& a_rName, int& a_rValue)
 void Serializer::Get(const std::string& a_rName, size_t& a_rValue)
 {
 	a_rValue = (size_t)Root()[a_rName].asInt64();
-}
-
-void Serializer::Get(const std::string& a_rName, Vec2& a_rValue)
-{
-	StepIn(a_rName);
-
-	a_rValue.x = Root()["x"].asFloat();
-	a_rValue.y = Root()["y"].asFloat();
-
-	StepOut();
-}
-
-void Serializer::Get(const std::string& a_rName, Vec3& a_rValue)
-{
-	StepIn(a_rName);
-
-	a_rValue.x = Root()["x"].asFloat();
-	a_rValue.y = Root()["y"].asFloat();
-	a_rValue.z = Root()["z"].asFloat();
-
-	StepOut();
-}
-
-void Serializer::Get(const std::string& a_rName, Color & a_rValue)
-{
-	StepIn(a_rName);
-
-	a_rValue.r = Root()["r"].asFloat();
-	a_rValue.g = Root()["g"].asFloat();
-	a_rValue.b = Root()["b"].asFloat();
-
-	StepOut();
 }
 
 void Serializer::Get(const std::string& a_rName, std::string& a_rValue)

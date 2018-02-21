@@ -1,5 +1,5 @@
-#include "Utilities/FileWriter.h"
-#include <cassert>
+#include "stdafx.h"
+#include "FileWriter.h"
 
 FileWriter::FileWriter(const std::string& a_rFileName)
 {

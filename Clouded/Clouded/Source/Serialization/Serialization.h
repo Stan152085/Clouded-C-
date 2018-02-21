@@ -1,10 +1,6 @@
 #pragma once
-#include "Math\Vec3.h"
 #include <string>
 #include <stack>
-
-class Vec2;
-class Color;
 
 namespace Json
 {
@@ -38,9 +34,6 @@ public:
 	void Add(const std::string& a_rName, double a_value);
 	void Add(const std::string& a_rName, int a_value);
 	void Add(const std::string& a_rName, size_t a_value);
-	void Add(const std::string& a_rName, const Vec2& a_rValue);
-	void Add(const std::string& a_rName, const Vec3& a_rValue);
-	void Add(const std::string& a_rName, const Color& a_rValue);
 	void Add(const std::string& a_rName, const std::string& a_rValue);
 
 	void Get(const std::string& a_rName, float& a_value);
@@ -48,9 +41,6 @@ public:
 	void Get(const std::string& a_rName, double& a_value);
 	void Get(const std::string& a_rName, int& a_value);
 	void Get(const std::string& a_rName, size_t& a_value);
-	void Get(const std::string& a_rName, Vec2& a_rValue);
-	void Get(const std::string& a_rName, Vec3& a_rValue);
-	void Get(const std::string& a_rName, Color& a_rValue);
 	void Get(const std::string& a_rName, std::string& a_rValue);
 
 private:

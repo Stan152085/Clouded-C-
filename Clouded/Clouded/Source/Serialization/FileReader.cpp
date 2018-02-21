@@ -1,6 +1,6 @@
-#include "Utilities\FileReader.h"
+#include "stdafx.h"
+#include "FileReader.h"
 #include <fstream>
-#include <cassert>
 
 FileReader::~FileReader()
 {
