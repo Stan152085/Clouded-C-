@@ -5,12 +5,19 @@
 #include "SFML/Main.hpp"
 #include "SFML/System.hpp"
 #include "SFML/Window.hpp"
+#include "Graphics/renderer.h"
 
 int main()
 {
+  math::Vec2u resolution(700, 500);
 	sf::Window window;
-	sf::VideoMode mode(700, 500);
-
+	sf::VideoMode mode(resolution.x, resolution.y);
+  
+	sf::WindowHandle handle = window.getSystemHandle();
+	
+  D3D11Renderer renderer;
+  renderer.Intialize(handle, resolution);
+	// window.han
 	window.create(mode, "Clouded");
 	// game initialization
 
