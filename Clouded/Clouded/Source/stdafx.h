@@ -6,6 +6,7 @@
 #pragma once
 
 #include "targetver.h"
+#include "Math\math_defines.h"
 
 #include <stdio.h>
 #include <tchar.h>

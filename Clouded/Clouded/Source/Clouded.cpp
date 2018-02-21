@@ -47,7 +47,6 @@ int main()
 	sf::VideoMode mode(700, 500);
 
 	window.create(mode, "Clouded");
-
 	// game initialization
 
 	while (window.isOpen())

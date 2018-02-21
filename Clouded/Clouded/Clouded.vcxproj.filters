@@ -24,22 +24,11 @@
     <ClInclude Include="Source\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Math\math.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Math\matrix.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Math\transform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Math\vector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    
     <ClInclude Include="Source\Resources\GLTFLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Resources\ResourceManagementUtils.h">
+	<ClInclude Include="Source\Math\math_defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
