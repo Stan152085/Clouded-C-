@@ -162,6 +162,8 @@
     <ClInclude Include="Source\Math\matrix.h" />
     <ClInclude Include="Source\Math\transform.h" />
     <ClInclude Include="Source\Math\vector.h" />
+    <ClInclude Include="Source\Resources\GLTFLoader.h" />
+    <ClInclude Include="Source\Resources\ResourceManagementUtils.h" />
     <ClInclude Include="Source\stdafx.h" />
     <ClInclude Include="Source\targetver.h" />
   </ItemGroup>
@@ -170,6 +172,7 @@
     <ClCompile Include="Source\Math\matrix.cpp" />
     <ClCompile Include="Source\Math\transform.cpp" />
     <ClCompile Include="Source\Math\vector.cpp" />
+    <ClCompile Include="Source\Resources\GLTFLoader.cpp" />
     <ClCompile Include="Source\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
