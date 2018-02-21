@@ -104,7 +104,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SFML\Include;$(SolutionDir)glm;$(SolutionDir)OpenVr\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SFML\Include;$(SolutionDir)imgui;$(SolutionDir)glm;$(SolutionDir)OpenVr\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderOutputFile>$(ProjectDir)Include\$(TargetName).pch</PrecompiledHeaderOutputFile>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
@@ -142,7 +142,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SFML\Include;$(SolutionDir)glm;$(SolutionDir)OpenVr\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SFML\Include;$(SolutionDir)imgui;$(SolutionDir)glm;$(SolutionDir)OpenVr\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderOutputFile>$(ProjectDir)Include\$(TargetName).pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
@@ -158,12 +158,20 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\imgui\imconfig.h" />
+    <ClInclude Include="Source\imgui\imgui.h" />
+    <ClInclude Include="Source\imgui\imgui_internal.h" />
+    <ClInclude Include="Source\imgui\stb_rect_pack.h" />
+    <ClInclude Include="Source\imgui\stb_textedit.h" />
+    <ClInclude Include="Source\imgui\stb_truetype.h" />
     <ClInclude Include="Source\Math\math_defines.h" />
     <ClInclude Include="Source\stdafx.h" />
     <ClInclude Include="Source\targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Clouded.cpp" />
+    <ClCompile Include="Source\imgui\imgui.cpp" />
+    <ClCompile Include="Source\imgui\imgui_draw.cpp" />
     <ClCompile Include="Source\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
