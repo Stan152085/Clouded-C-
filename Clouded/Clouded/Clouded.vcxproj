@@ -58,7 +58,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SFML\Include;$(SolutionDir)OpenVr\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SFML\Include;$(SolutionDir)glm;$(SolutionDir)OpenVr\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderOutputFile>$(ProjectDir)Include\$(TargetName).pch</PrecompiledHeaderOutputFile>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
@@ -78,7 +78,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SFML\Include;$(ProjectDir)Include;$(SolutionDir)OpenVr\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SFML\Include;$(SolutionDir)glm;$(SolutionDir)OpenVr\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderOutputFile>$(ProjectDir)Include\$(TargetName).pch</PrecompiledHeaderOutputFile>
     </ClCompile>
     <Link>
@@ -94,20 +94,13 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Math\math.h" />
-    <ClInclude Include="Source\Math\matrix.h" />
-    <ClInclude Include="Source\Math\transform.h" />
-    <ClInclude Include="Source\Math\vector.h" />
+    <ClInclude Include="Source\Math\math_defines.h" />
     <ClInclude Include="Source\Input\Input.h" />
     <ClInclude Include="Source\stdafx.h" />
     <ClInclude Include="Source\targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Clouded.cpp" />
-    <ClCompile Include="Source\Input\Input.cpp" />
-    <ClCompile Include="Source\Math\matrix.cpp" />
-    <ClCompile Include="Source\Math\transform.cpp" />
-    <ClCompile Include="Source\Math\vector.cpp" />
     <ClCompile Include="Source\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
