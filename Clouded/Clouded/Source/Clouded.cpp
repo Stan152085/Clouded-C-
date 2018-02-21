@@ -7,6 +7,8 @@
 #include "SFML/Window.hpp"
 #include "Graphics/renderer.h"
 
+#include "Resources/GLTFLoader.h"
+
 int main()
 {
   math::Vec2u resolution(700, 500);
@@ -20,6 +22,9 @@ int main()
 	// window.han
 	window.create(mode, "Clouded");
 	// game initialization
+
+  resources::GLTFLoader loader;
+  loader.Run();
 
 	while (window.isOpen())
 	{
