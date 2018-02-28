@@ -33,10 +33,6 @@
     {
       translation = pos;
     }
-    inline void Translate(float x, float y, float z)
-    {
-      translation = Vec3(x, y, z);
-    }
 
     inline Transform& Rotate(const Quat& rot)
     {
