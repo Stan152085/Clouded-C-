@@ -5,18 +5,28 @@
 #include "SFML/Main.hpp"
 #include "SFML/System.hpp"
 #include "SFML/Window.hpp"
-#include "Input/Input.h"
+#include "Graphics/renderer.h"
+
+#include "Resources/GLTFLoader.h"
 
 int main()
 {
+  math::Vec2u resolution(700, 500);
 	sf::Window window;
-	sf::VideoMode mode(700, 500);
-  vr::HmdError test;
+	sf::VideoMode mode(resolution.x, resolution.y);
+  
+	sf::WindowHandle handle = window.getSystemHandle();
   vr::EVRApplicationType type = vr::EVRApplicationType::VRApplication_Scene;
-  vr::IVRSystem* vr_system = vr::VR_Init( &test, type );
-  Input input( vr_system );
+  vr::IVRSystem* vr_system = vr::VR_Init(&test, type);
+  Input input(vr_system);
+  D3D11Renderer renderer;
+  renderer.Intialize(handle, resolution);
+	// window.han
 	window.create(mode, "Clouded");
 	// game initialization
+
+  resources::GLTFLoader loader;
+  loader.Run();
 
 	while (window.isOpen())
 	{

@@ -56,17 +56,19 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SFML\Include;$(SolutionDir)glm;$(SolutionDir)OpenVr\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(ProjectDir)Source\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderOutputFile>$(ProjectDir)Include\$(TargetName).pch</PrecompiledHeaderOutputFile>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4005;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>sfml-audio-d.lib;sfml-graphics-d.lib;sfml-main-d.lib;sfml-system-d.lib;sfml-window-d.lib;openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)SFML;$(SolutionDir)OpenVr;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-audio-d.lib;sfml-graphics-d.lib;sfml-main-d.lib;sfml-system-d.lib;sfml-window-d.lib;openvr_api.lib;fmodL64_vc.lib;%(AdditionalDependencies);d3d11.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)SFML;$(SolutionDir)Fmod/lib;$(SolutionDir)OpenVr;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -76,31 +78,55 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SFML\Include;$(SolutionDir)glm;$(SolutionDir)OpenVr\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(ProjectDir)Source\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderOutputFile>$(ProjectDir)Include\$(TargetName).pch</PrecompiledHeaderOutputFile>
+      <DisableSpecificWarnings>4005;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>sfml-audio.lib;sfml-graphics.lib;sfml-main.lib;sfml-system.lib;sfml-window.lib;openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)SFML;$(SolutionDir)OpenVr;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sfml-audio.lib;sfml-graphics.lib;sfml-main.lib;sfml-system.lib;sfml-window.lib;openvr_api.lib;fmod64_vc.lib;%(AdditionalDependencies);d3d11.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)SFML;$(SolutionDir)Fmod/lib;$(SolutionDir)OpenVr;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Graphics\renderer.h" />
+    <ClInclude Include="Source\imgui\imconfig.h" />
+    <ClInclude Include="Source\imgui\imgui.h" />
+    <ClInclude Include="Source\imgui\imgui_internal.h" />
+    <ClInclude Include="Source\imgui\stb_rect_pack.h" />
+    <ClInclude Include="Source\imgui\stb_textedit.h" />
+    <ClInclude Include="Source\imgui\stb_truetype.h" />
     <ClInclude Include="Source\Math\math_defines.h" />
+    <ClInclude Include="Source\Resources\GLTFLoader.h" />
+    <ClInclude Include="Source\Resources\ResourceManagementUtils.h" />
+    <ClInclude Include="Source\Serialization\FileReader.h" />
+    <ClInclude Include="Source\Serialization\FileWriter.h" />
+    <ClInclude Include="Source\Serialization\Json\json-forwards.h" />
+    <ClInclude Include="Source\Serialization\Json\json.h" />
+    <ClInclude Include="Source\Serialization\Serialization.h" />
     <ClInclude Include="Source\Input\Input.h" />
     <ClInclude Include="Source\stdafx.h" />
     <ClInclude Include="Source\targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Clouded.cpp" />
+    <ClCompile Include="Source\Graphics\Renderer.cpp" />
+    <ClCompile Include="Source\Resources\GLTFLoader.cpp" />
+    <ClCompile Include="Source\Serialization\FileReader.cpp" />
+    <ClCompile Include="Source\Serialization\FileWriter.cpp" />
+    <ClCompile Include="Source\Serialization\jsoncpp.cpp" />
+    <ClCompile Include="Source\Serialization\Serialization.cpp" />
+    <ClCompile Include="Source\imgui\imgui.cpp" />
+    <ClCompile Include="Source\imgui\imgui_draw.cpp" />
     <ClCompile Include="Source\Input\Input.cpp" />
     <ClCompile Include="Source\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
