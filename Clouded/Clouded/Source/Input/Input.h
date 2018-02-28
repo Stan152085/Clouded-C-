@@ -1,5 +1,5 @@
 #pragma once
-#include "OpenVr/openvr.h"
+#include <OpenVr/openvr.h>
 
 namespace vr
 {

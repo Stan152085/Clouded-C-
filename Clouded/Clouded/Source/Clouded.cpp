@@ -6,6 +6,7 @@
 #include "SFML/System.hpp"
 #include "SFML/Window.hpp"
 #include "Graphics/renderer.h"
+#include "Input/Input.h"
 
 #include "Resources/GLTFLoader.h"
 
@@ -16,8 +17,9 @@ int main()
 	sf::VideoMode mode(resolution.x, resolution.y);
   
 	sf::WindowHandle handle = window.getSystemHandle();
+  vr::EVRInitError init_error;
   vr::EVRApplicationType type = vr::EVRApplicationType::VRApplication_Scene;
-  vr::IVRSystem* vr_system = vr::VR_Init(&test, type);
+  vr::IVRSystem* vr_system = vr::VR_Init(&init_error, type);
   Input input(vr_system);
   D3D11Renderer renderer;
   renderer.Intialize(handle, resolution);

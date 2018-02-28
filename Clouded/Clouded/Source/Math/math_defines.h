@@ -1,8 +1,8 @@
 #pragma once
 #include "stdafx.h"
-#include "common.hpp"
-#include "matrix.hpp"
-#include "gtc/quaternion.hpp"
+#include <glm/common.hpp>
+#include <glm/matrix.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace math
 {
