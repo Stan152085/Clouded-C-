@@ -20,6 +20,12 @@ public:
     kNumControlers = kInvalid
   };
 
+  enum ControllerAxis
+  {
+    TrackPad,
+    Trigger
+  };
+
   math::Vec3 Position(Controller type);
   math::Quat Rotation(Controller type);
   math::Vec3 Velocity(Controller type);
@@ -29,6 +35,7 @@ public:
   bool IsButtonReleased(Controller type, vr::EVRButtonId button_id);
   bool IsButtonTouched(Controller type, vr::EVRButtonId button_id);
 
+  math::Vec2 Axis(Controller type, ControllerAxis axis);
 
   Input( vr::IVRSystem* vr_input );
   void Poll();

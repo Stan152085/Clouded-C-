@@ -11,6 +11,7 @@ struct VRControllerData
   uint64_t button_pressed;
   uint64_t last_button_pressed;
   uint64_t button_touched;
+  math::Vec2 axis[vr::k_unControllerStateAxisCount];
   bool is_connected;
   bool is_valid;
 };
@@ -60,6 +61,12 @@ bool Input::IsButtonTouched(Controller type, vr::EVRButtonId button_id)
 {
   InputData& input_data = reinterpret_cast<InputData&>(*pImpl);
   return  (vr::ButtonMaskFromId(button_id) & input_data.controller_data[type].button_touched);
+}
+
+math::Vec2 Input::Axis(Controller type, ControllerAxis axis)
+{
+  InputData& input_data = reinterpret_cast<InputData&>(*pImpl);
+  return input_data.controller_data[type].axis[axis];
 }
 
 Input::Input( vr::IVRSystem* vr_input )
@@ -202,7 +209,10 @@ void Input::Poll()
         controller_data.last_button_pressed = controller_data.button_pressed;
         controller_data.button_pressed = state.ulButtonPressed;
         controller_data.button_touched = state.ulButtonTouched;
-
+        for (int i = 0; i < vr::k_unControllerStateAxisCount; ++i)
+        {
+          controller_data.axis[i] = math::Vec2(state.rAxis[i].x, state.rAxis[i].y);
+        }
         switch (result)
         {
         case vr::TrackingResult_Uninitialized:
