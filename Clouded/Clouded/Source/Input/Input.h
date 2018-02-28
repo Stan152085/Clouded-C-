@@ -26,16 +26,16 @@ public:
     Trigger
   };
 
-  math::Vec3 Position(Controller type);
-  math::Quat Rotation(Controller type);
-  math::Vec3 Velocity(Controller type);
-  math::Vec3 AngularVelocity(Controller type);
+  Vec3 Position(Controller type);
+  Quat Rotation(Controller type);
+  Vec3 Velocity(Controller type);
+  Vec3 AngularVelocity(Controller type);
 
   bool IsButtonPressed(Controller type, vr::EVRButtonId button_id);
   bool IsButtonReleased(Controller type, vr::EVRButtonId button_id);
   bool IsButtonTouched(Controller type, vr::EVRButtonId button_id);
 
-  math::Vec2 Axis(Controller type, ControllerAxis axis);
+  Vec2 Axis(Controller type, ControllerAxis axis);
 
   Input( vr::IVRSystem* vr_input );
   void Poll();

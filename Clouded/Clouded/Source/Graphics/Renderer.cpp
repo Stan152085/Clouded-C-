@@ -11,7 +11,7 @@ D3D11Renderer::~D3D11Renderer()
 {
 }
 
-bool D3D11Renderer::Intialize(HWND window_handle, const math::Vec2u& screen_size)
+bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
 {
   HRESULT result;
   //buffer description

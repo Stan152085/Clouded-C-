@@ -106,6 +106,7 @@
     <ClInclude Include="Source\imgui\stb_textedit.h" />
     <ClInclude Include="Source\imgui\stb_truetype.h" />
     <ClInclude Include="Source\Math\math_defines.h" />
+    <ClInclude Include="Source\Core\Transform.h" />
     <ClInclude Include="Source\Resources\GLTFLoader.h" />
     <ClInclude Include="Source\Resources\ResourceManagementUtils.h" />
     <ClInclude Include="Source\Serialization\FileReader.h" />
