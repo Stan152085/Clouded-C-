@@ -2,7 +2,8 @@
 #include "renderer.h"
 #include <D3D11.h>
 
-D3D11Renderer::D3D11Renderer()
+D3D11Renderer::D3D11Renderer() :
+  clear_color_{ 1.0f ,1.0f ,1.0f ,1.0f }
 {
 }
 
@@ -12,6 +13,7 @@ D3D11Renderer::~D3D11Renderer()
 
 bool D3D11Renderer::Intialize(HWND window_handle, const math::Vec2u& screen_size)
 {
+  HRESULT result;
   //buffer description
   DXGI_MODE_DESC buffer_desc;
   ZeroMemory(&buffer_desc, sizeof(DXGI_MODE_DESC));
@@ -25,6 +27,8 @@ bool D3D11Renderer::Intialize(HWND window_handle, const math::Vec2u& screen_size
 
   // swap chain -> swapping back and front buffers
   DXGI_SWAP_CHAIN_DESC swap_chain_desc_;
+  ZeroMemory(&swap_chain_desc_, sizeof(DXGI_SWAP_CHAIN_DESC));
+
   swap_chain_desc_.BufferDesc = buffer_desc;
   swap_chain_desc_.SampleDesc.Count = 1;
   swap_chain_desc_.SampleDesc.Quality = 0;
@@ -34,7 +38,7 @@ bool D3D11Renderer::Intialize(HWND window_handle, const math::Vec2u& screen_size
   swap_chain_desc_.Windowed = TRUE;
   swap_chain_desc_.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
-  D3D11CreateDeviceAndSwapChain(NULL,
+  result = D3D11CreateDeviceAndSwapChain(NULL,
                                 D3D_DRIVER_TYPE_HARDWARE,
                                 NULL,
                                 NULL,
@@ -46,6 +50,11 @@ bool D3D11Renderer::Intialize(HWND window_handle, const math::Vec2u& screen_size
                                 &d3d11_device_,
                                 NULL,
                                 &d3d11_device_context_);
+
+  if (FAILED(result))
+  {
+    printf("Failed to create swap chain");
+  }
 
   ID3D11Texture2D* back_buffer;
   swap_chain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back_buffer);
@@ -63,9 +72,17 @@ bool D3D11Renderer::Release()
   return true;
 }
 
+void D3D11Renderer::SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+{
+  float mult = 1 / 255;
+  clear_color_[0] = { mult * r };
+  clear_color_[1] = { mult * g };
+  clear_color_[2] = { mult * b };
+  clear_color_[3] = { mult * a };
+}
+
 void D3D11Renderer::Draw()
 {
-  float color[4]{1.0f ,1.0f ,1.0f ,1.0f};
-  d3d11_device_context_->ClearRenderTargetView(render_target_view_, color);
+  d3d11_device_context_->ClearRenderTargetView(render_target_view_, clear_color_);
   swap_chain_->Present(0, 0);
 }
