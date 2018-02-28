@@ -16,16 +16,16 @@ int main()
 	sf::Window window;
 	sf::VideoMode mode(resolution.x, resolution.y);
   
-	sf::WindowHandle handle = window.getSystemHandle();
   vr::EVRInitError init_error;
   vr::EVRApplicationType type = vr::EVRApplicationType::VRApplication_Scene;
   vr::IVRSystem* vr_system = vr::VR_Init(&init_error, type);
   Input input(vr_system);
-  D3D11Renderer renderer;
-  renderer.Intialize(handle, resolution);
 	// window.han
 	window.create(mode, "Clouded");
+	sf::WindowHandle handle = window.getSystemHandle();
 	// game initialization
+  D3D11Renderer renderer;
+  renderer.Intialize(handle, resolution);
 
   resources::GLTFLoader loader;
   loader.Run();
@@ -35,6 +35,10 @@ int main()
 		// put main gameloop here
 		sf::Event event;
     input.Poll();
+    if (input.IsButtonReleased(Input::kLeftHand, vr::EVRButtonId::k_EButton_SteamVR_Touchpad))
+    {
+      window.close();
+    }
 		while (window.pollEvent(event))
 		{
 			if (event.type == sf::Event::EventType::Closed)

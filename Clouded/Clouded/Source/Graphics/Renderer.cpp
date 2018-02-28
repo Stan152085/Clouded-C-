@@ -25,6 +25,8 @@ bool D3D11Renderer::Intialize(HWND window_handle, const math::Vec2u& screen_size
 
   // swap chain -> swapping back and front buffers
   DXGI_SWAP_CHAIN_DESC swap_chain_desc_;
+  ZeroMemory(&swap_chain_desc_, sizeof(DXGI_SWAP_CHAIN_DESC));
+
   swap_chain_desc_.BufferDesc = buffer_desc;
   swap_chain_desc_.SampleDesc.Count = 1;
   swap_chain_desc_.SampleDesc.Quality = 0;
