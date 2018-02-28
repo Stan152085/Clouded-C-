@@ -25,15 +25,15 @@ public:
   math::Vec3 Velocity(Controller type);
   math::Vec3 AngularVelocity(Controller type);
 
+  bool IsButtonPressed(Controller type, vr::EVRButtonId button_id);
+  bool IsButtonReleased(Controller type, vr::EVRButtonId button_id);
+  bool IsButtonTouched(Controller type, vr::EVRButtonId button_id);
+
 
   Input( vr::IVRSystem* vr_input );
   void Poll();
   
 private:
   vr::IVRSystem* vr_system_;
-
-  vr::ETrackingUniverseOrigin universe_origin_;
-  vr::VREvent_t event_;
-  vr::TrackedDevicePose_t pose_;
   struct InputData* pImpl;
 };
