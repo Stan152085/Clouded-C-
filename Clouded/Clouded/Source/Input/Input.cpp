@@ -3,14 +3,15 @@
 #include "Math\math_defines.h"
 struct VRControllerData
 {
-  math::Vec3 pos;
-  math::Quat rot;
-  math::Vec3 vel;
-  math::Vec3 angular_vel;
+  Vec3 pos;
+  Quat rot;
+  Vec3 vel;
+  Vec3 angular_vel;
 
   uint64_t button_pressed;
   uint64_t last_button_pressed;
   uint64_t button_touched;
+  Vec2 axis[vr::k_unControllerStateAxisCount];
   bool is_connected;
   bool is_valid;
 };
@@ -20,23 +21,23 @@ struct InputData
   VRControllerData controller_data[Input::kNumControlers];
 };
 
-math::Vec3 Input::Position(Controller type)
+Vec3 Input::Position(Controller type)
 {
   InputData& input_data = reinterpret_cast<InputData&>(*pImpl);
   return input_data.controller_data[type].pos;
 }
 
-math::Quat Input::Rotation(Controller type)
+Quat Input::Rotation(Controller type)
 {
   InputData& input_data = reinterpret_cast<InputData&>(*pImpl);
   return input_data.controller_data[type].rot;
 }
-math::Vec3 Input::Velocity(Controller type)
+Vec3 Input::Velocity(Controller type)
 {
   InputData& input_data = reinterpret_cast<InputData&>(*pImpl);
   return input_data.controller_data[type].vel;
 }
-math::Vec3 Input::AngularVelocity(Controller type)
+Vec3 Input::AngularVelocity(Controller type)
 {
   InputData& input_data = reinterpret_cast<InputData&>(*pImpl);
   return input_data.controller_data[type].angular_vel;
@@ -54,13 +55,18 @@ bool Input::IsButtonReleased(Controller type, vr::EVRButtonId button_id)
   uint64_t mask = vr::ButtonMaskFromId(button_id);
   bool last = (mask & input_data.controller_data[type].last_button_pressed);
   return ((mask & input_data.controller_data[type].button_pressed) == false && last == true);
-  return false;
 }
 
 bool Input::IsButtonTouched(Controller type, vr::EVRButtonId button_id)
 {
   InputData& input_data = reinterpret_cast<InputData&>(*pImpl);
   return  (vr::ButtonMaskFromId(button_id) & input_data.controller_data[type].button_touched);
+}
+
+Vec2 Input::Axis(Controller type, ControllerAxis axis)
+{
+  InputData& input_data = reinterpret_cast<InputData&>(*pImpl);
+  return input_data.controller_data[type].axis[axis];
 }
 
 Input::Input( vr::IVRSystem* vr_input )
@@ -71,8 +77,8 @@ Input::Input( vr::IVRSystem* vr_input )
 }
 
 // Get the quaternion representing the rotation
-math::Quat GetRotation( vr::HmdMatrix34_t matrix ) {
-  math::Quat q;
+Quat GetRotation( vr::HmdMatrix34_t matrix ) {
+  Quat q;
 
   q.w = sqrtf( fmaxf( 0, 1 + matrix.m[0][0] + matrix.m[1][1] + matrix.m[2][2] ) ) / 2;
   q.x = sqrtf( fmaxf( 0, 1 + matrix.m[0][0] - matrix.m[1][1] - matrix.m[2][2] ) ) / 2;
@@ -85,9 +91,9 @@ math::Quat GetRotation( vr::HmdMatrix34_t matrix ) {
 }
 
 // Get the vector representing the position
-math::Vec3 GetPosition( vr::HmdMatrix34_t matrix ) 
+Vec3 GetPosition( vr::HmdMatrix34_t matrix ) 
 {
-  return math::Vec3(matrix.m[0][3], matrix.m[1][3], matrix.m[2][3]);
+  return Vec3(matrix.m[0][3], matrix.m[1][3], matrix.m[2][3]);
 }
 void Input::Poll()
 {
@@ -135,8 +141,8 @@ void Input::Poll()
       VRControllerData& head_data = input_data.controller_data[kHead];
       head_data.pos = GetPosition(pose.mDeviceToAbsoluteTracking);
       head_data.rot = GetRotation(pose.mDeviceToAbsoluteTracking);
-      head_data.vel = math::Vec3(pose.vVelocity.v[0], pose.vVelocity.v[1], pose.vVelocity.v[2]);
-      head_data.angular_vel = math::Vec3(pose.vAngularVelocity.v[0], pose.vAngularVelocity.v[1], pose.vAngularVelocity.v[2]);
+      head_data.vel = Vec3(pose.vVelocity.v[0], pose.vVelocity.v[1], pose.vVelocity.v[2]);
+      head_data.angular_vel = Vec3(pose.vAngularVelocity.v[0], pose.vAngularVelocity.v[1], pose.vAngularVelocity.v[2]);
       head_data.is_connected = pose.bDeviceIsConnected;
       head_data.is_valid = pose.bPoseIsValid;
       result = pose.eTrackingResult;
@@ -196,14 +202,17 @@ void Input::Poll()
         VRControllerData& controller_data = input_data.controller_data[type];
         controller_data.pos = GetPosition(pose.mDeviceToAbsoluteTracking);
         controller_data.rot = GetRotation(pose.mDeviceToAbsoluteTracking);
-        controller_data.vel = math::Vec3(pose.vVelocity.v[0], pose.vVelocity.v[1], pose.vVelocity.v[2]);
-        controller_data.angular_vel = math::Vec3(pose.vAngularVelocity.v[0], pose.vAngularVelocity.v[1], pose.vAngularVelocity.v[2]);
+        controller_data.vel = Vec3(pose.vVelocity.v[0], pose.vVelocity.v[1], pose.vVelocity.v[2]);
+        controller_data.angular_vel = Vec3(pose.vAngularVelocity.v[0], pose.vAngularVelocity.v[1], pose.vAngularVelocity.v[2]);
         controller_data.is_connected = pose.bDeviceIsConnected;
         controller_data.is_valid = pose.bPoseIsValid;
         controller_data.last_button_pressed = controller_data.button_pressed;
         controller_data.button_pressed = state.ulButtonPressed;
         controller_data.button_touched = state.ulButtonTouched;
-
+        for (int i = 0; i < vr::k_unControllerStateAxisCount; ++i)
+        {
+          controller_data.axis[i] = Vec2(state.rAxis[i].x, state.rAxis[i].y);
+        }
         switch (result)
         {
         case vr::TrackingResult_Uninitialized:

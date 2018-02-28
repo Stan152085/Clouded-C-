@@ -18,7 +18,7 @@
 // required std includes for the forward declared header
 #include <stdio.h>
 #include <tchar.h>
-
+#include <stdint.h>
 
 
 // TODO: reference additional headers your program requires here

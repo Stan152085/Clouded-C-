@@ -7,12 +7,12 @@
 #include "SFML/Window.hpp"
 #include "Graphics/renderer.h"
 #include "Input/Input.h"
-
+#include "Core/Transform.h"
 #include "Resources/GLTFLoader.h"
 
 int main()
 {
-  math::Vec2u resolution(700, 500);
+  Vec2u resolution(700, 500);
 	sf::Window window;
 	sf::VideoMode mode(resolution.x, resolution.y);
   
@@ -30,6 +30,18 @@ int main()
   resources::GLTFLoader loader;
   loader.Run();
 
+  Transform trans;
+  Mat44 test0 = trans.GetInversedMatrix();
+  trans.Translate(Vec3(10, 0, 0));
+  test0 = trans.GetMatrix();
+  test0 = trans.GetInversedMatrix();
+  test0 *= trans.GetMatrix();
+  trans.SetRotation(glm::normalize(Quat(0.5f,0.7f,0.7f,0.1f)));
+  trans.SetScale(5.0f, 2.0f, 3.0f);
+  test0 = trans.GetMatrix();
+  test0 = trans.GetInversedMatrix();
+  test0 *= trans.GetMatrix();
+
 	while (window.isOpen())
 	{
 		// put main gameloop here
@@ -46,7 +58,13 @@ int main()
 				window.close();
 				break;
 			}
+      else if (event.type == sf::Event::EventType::KeyPressed)
+      {
+        renderer.SetClearColor(0, 0, 0, 0);
+      }
+
 		}
+    renderer.Draw();
 	}
     return 0;
 }
