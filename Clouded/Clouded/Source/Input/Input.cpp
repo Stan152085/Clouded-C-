@@ -54,7 +54,6 @@ bool Input::IsButtonReleased(Controller type, vr::EVRButtonId button_id)
   uint64_t mask = vr::ButtonMaskFromId(button_id);
   bool last = (mask & input_data.controller_data[type].last_button_pressed);
   return ((mask & input_data.controller_data[type].button_pressed) == false && last == true);
-  return false;
 }
 
 bool Input::IsButtonTouched(Controller type, vr::EVRButtonId button_id)
