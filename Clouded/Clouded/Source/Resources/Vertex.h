@@ -5,8 +5,8 @@ namespace resources
 {
   struct Vertex
   {
-    math::Vec3 p;
-    math::Vec3 n;
-    math::Vec2 uv;
+    Vec3 p;
+    Vec3 n;
+    Vec2 uv;
   };
 }
