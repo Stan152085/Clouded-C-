@@ -35,6 +35,10 @@ int main()
 		// put main gameloop here
 		sf::Event event;
     input.Poll();
+    if (input.IsButtonReleased(Input::kLeftHand, vr::EVRButtonId::k_EButton_SteamVR_Touchpad))
+    {
+      window.close();
+    }
 		while (window.pollEvent(event))
 		{
 			if (event.type == sf::Event::EventType::Closed)

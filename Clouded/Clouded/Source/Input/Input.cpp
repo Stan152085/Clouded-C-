@@ -11,6 +11,7 @@ struct VRControllerData
   uint64_t button_pressed;
   uint64_t last_button_pressed;
   uint64_t button_touched;
+  math::Vec2 axis[vr::k_unControllerStateAxisCount];
   bool is_connected;
   bool is_valid;
 };
@@ -42,10 +43,35 @@ math::Vec3 Input::AngularVelocity(Controller type)
   return input_data.controller_data[type].angular_vel;
 }
 
+bool Input::IsButtonPressed(Controller type, vr::EVRButtonId button_id)
+{
+  InputData& input_data = reinterpret_cast<InputData&>(*pImpl);
+  return (vr::ButtonMaskFromId(button_id) & input_data.controller_data[type].button_pressed);
+}
+
+bool Input::IsButtonReleased(Controller type, vr::EVRButtonId button_id)
+{
+  InputData& input_data = reinterpret_cast<InputData&>(*pImpl);
+  uint64_t mask = vr::ButtonMaskFromId(button_id);
+  bool last = (mask & input_data.controller_data[type].last_button_pressed);
+  return ((mask & input_data.controller_data[type].button_pressed) == false && last == true);
+}
+
+bool Input::IsButtonTouched(Controller type, vr::EVRButtonId button_id)
+{
+  InputData& input_data = reinterpret_cast<InputData&>(*pImpl);
+  return  (vr::ButtonMaskFromId(button_id) & input_data.controller_data[type].button_touched);
+}
+
+math::Vec2 Input::Axis(Controller type, ControllerAxis axis)
+{
+  InputData& input_data = reinterpret_cast<InputData&>(*pImpl);
+  return input_data.controller_data[type].axis[axis];
+}
+
 Input::Input( vr::IVRSystem* vr_input )
   :
-  vr_system_( vr_input ),
-  universe_origin_( vr::TrackingUniverseOrigin::TrackingUniverseStanding )
+  vr_system_( vr_input )
 {
   pImpl = new InputData();
 }
@@ -71,6 +97,11 @@ math::Vec3 GetPosition( vr::HmdMatrix34_t matrix )
 }
 void Input::Poll()
 {
+  // TODO(Raymi): Swap to keyboard input
+  if (vr_system_ == nullptr)
+  {
+    return;
+  }
   InputData& input_data = reinterpret_cast<InputData&>(*pImpl);
   vr::VREvent_t event;
   while ( vr_system_->PollNextEvent( &event, sizeof( event ) ) )
@@ -175,10 +206,13 @@ void Input::Poll()
         controller_data.angular_vel = math::Vec3(pose.vAngularVelocity.v[0], pose.vAngularVelocity.v[1], pose.vAngularVelocity.v[2]);
         controller_data.is_connected = pose.bDeviceIsConnected;
         controller_data.is_valid = pose.bPoseIsValid;
+        controller_data.last_button_pressed = controller_data.button_pressed;
         controller_data.button_pressed = state.ulButtonPressed;
         controller_data.button_touched = state.ulButtonTouched;
-        controller_data.last_button_pressed = controller_data.button_pressed;
-
+        for (int i = 0; i < vr::k_unControllerStateAxisCount; ++i)
+        {
+          controller_data.axis[i] = math::Vec2(state.rAxis[i].x, state.rAxis[i].y);
+        }
         switch (result)
         {
         case vr::TrackingResult_Uninitialized:
