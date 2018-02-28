@@ -2,6 +2,7 @@
 #include "../stdafx.h"
 #include "common.hpp"
 #include "matrix.hpp"
+#include "gtc/quaternion.hpp"
 
 namespace math
 {
@@ -26,4 +27,6 @@ namespace math
 	using Mat42 = glm::mat4x2;
 	using Mat43 = glm::mat4x3;
 	using Mat44 = glm::mat4x4;
+  
+  using Quat = glm::quat;
 }
