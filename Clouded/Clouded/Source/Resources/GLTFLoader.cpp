@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "GLTFLoader.h"
+#include "Model.h"
+#include "Texture.h"
 #include "ResourceManagementUtils.h"
 
 #define TINYGLTF_IMPLEMENTATION
@@ -10,7 +12,41 @@
 #endif
 
 #include "TinyGLTF/tiny_gltf.h"
+#include <unordered_map>
 
+using ModelMap = std::unordered_map<std::string, std::shared_ptr<resources::Model>>;
+ModelMap model_map;
+using Texture = std::unordered_map<std::string, std::shared_ptr<resources::Texture>>;
+ModelMap texture_map;
+
+std::shared_ptr<resources::Model> resources::GetModel(std::string& file, std::string& err)
+{
+  return std::shared_ptr<resources::Model>();
+}
+
+std::shared_ptr<resources::Texture> resources::GetTexture(std::string& file, std::string& err)
+{
+  return std::shared_ptr<resources::Texture>();
+}
+
+void resources::CleanUp()
+{
+  ModelMap::iterator model_it;
+  for (model_it = model_map.begin(); model_it != model_map.end(); ++model_it)
+  {
+    if (model_it->second.use_count() < 2)
+    {
+      ///////////////////////////////////////////
+      // TODO: 
+      //      find and erase any empty shared pointers
+      //      parse data returned by TinyGLTF, fill the newly defined structures with it.
+      ///////////////////////////////////////////
+      model_map.erase(model_it);
+    }
+  }
+  model_map.clear();
+  texture_map.clear();
+}
 
 void resources::GLTFLoader::Run()
 {
@@ -28,7 +64,6 @@ void resources::GLTFLoader::Run()
   
   //////////////////////////////////////////////////
   // todo
-  //   verify that these models are correct, and that the textures have loaded as well
   //   start designing a quick interface for this thing (does it have to be a class?)
   //   start on our own data format
   //   start on the resource management to avoid duplicates
@@ -67,3 +102,4 @@ bool resources::GLTFLoader::Load(std::string & file, tinygltf::Model& result, st
 
 	return true;
 }
+
