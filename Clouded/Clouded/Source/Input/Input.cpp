@@ -71,6 +71,11 @@ math::Vec3 GetPosition( vr::HmdMatrix34_t matrix )
 }
 void Input::Poll()
 {
+  // TODO(Raymi): Swap to keyboard input
+  if (vr_system_ == nullptr)
+  {
+    return;
+  }
   InputData& input_data = reinterpret_cast<InputData&>(*pImpl);
   vr::VREvent_t event;
   while ( vr_system_->PollNextEvent( &event, sizeof( event ) ) )
