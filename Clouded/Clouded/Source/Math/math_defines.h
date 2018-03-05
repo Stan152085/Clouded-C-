@@ -4,8 +4,7 @@
 #include <glm/matrix.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-namespace math
-{
+
 	using Vec2i = glm::i32vec2;
 	using Vec3i = glm::i32vec3;
 	using Vec4i = glm::i32vec4;
@@ -29,4 +28,3 @@ namespace math
 	using Mat44 = glm::mat4x4;
   
   using Quat = glm::quat;
-}
