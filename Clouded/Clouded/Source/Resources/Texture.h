@@ -8,7 +8,9 @@ namespace resources
   class Texture
   {
   public:
-    Texture(int width, int height, int components, std::vector<unsigned char>& data);
+    Texture(
+      const int width, const int height,
+      const int components, const unsigned char* data);
     ~Texture();
 
     const int width() const

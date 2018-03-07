@@ -128,6 +128,8 @@
     <ClCompile Include="Source\Clouded.cpp" />
     <ClCompile Include="Source\Graphics\Renderer.cpp" />
     <ClCompile Include="Source\Resources\GLTFLoader.cpp" />
+    <ClCompile Include="Source\Resources\Mesh.cpp" />
+    <ClCompile Include="Source\Resources\Model.cpp" />
     <ClCompile Include="Source\Resources\Texture.cpp" />
     <ClCompile Include="Source\Serialization\FileReader.cpp" />
     <ClCompile Include="Source\Serialization\FileWriter.cpp" />

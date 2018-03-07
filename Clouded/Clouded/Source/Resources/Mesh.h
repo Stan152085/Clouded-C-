@@ -9,6 +9,11 @@ namespace resources
   class Mesh
   {
   public:
+    Mesh(
+      const std::vector<unsigned short>& indices,
+      const std::vector<Vertex>& vertices,
+      const Material& material);
+
     const std::vector<unsigned short>& indices() const
     {
       return indices_;
