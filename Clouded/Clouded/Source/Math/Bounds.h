@@ -37,11 +37,11 @@ class ZeroBound
 public:
   ZeroBound(T val)
     :
-    max(val)
+    max_(val)
   {}
   bool InBounds(const T value)
   {
-    return (value >= 0 && value < max);
+    return (value >= 0 && value < max_);
   }
   T min()
   {
