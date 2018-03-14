@@ -408,11 +408,6 @@ namespace resources
     {
       if (model_it->second.use_count() < 2)
       {
-        ///////////////////////////////////////////
-        // TODO: 
-        //      find and erase any empty shared pointers
-        //      parse data returned by TinyGLTF, fill the newly defined structures with it.
-        ///////////////////////////////////////////
         model_map.erase(model_it);
       }
     }
@@ -420,7 +415,7 @@ namespace resources
     texture_map.clear();
   }
 
-  void GLTFLoader::Run()
+  void Run()
   {
     std::string file_name_cube = "../Assets/Samples/Cube/Cube.gltf";
     std::string file_name_duck = "../Assets/Samples/Duck/Duck.gltf";
