@@ -2,6 +2,8 @@
 #include "stdafx.h"
 #include <D3D11.h>
 
+class Camera;
+
 namespace resources
 {
   struct Vertex;
@@ -16,8 +18,9 @@ public:
 	bool Intialize(HWND window_handle, const Vec2u& screen_size);
   bool Release();
   void SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
-  void DrawLine(const Vec3& start, const Vec3 end );
+  void AddLine(const Vec3& from, const Vec3 to );
 	void Draw();
+  void SetCamera(Camera* cam);
 
 private:
   void ReadShader(const char* shader_name, std::vector<char>& buffer);
@@ -47,11 +50,13 @@ private:
   /*render states*/
   ID3D11RasterizerState* wireframe_;
 
-  D3D11_INPUT_ELEMENT_DESC layout[2] = {
+  D3D11_INPUT_ELEMENT_DESC layout[4] = {
     { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0 ,12, D3D11_INPUT_PER_VERTEX_DATA, 0}
+    { "NORM", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TANGENT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 40, D3D11_INPUT_PER_VERTEX_DATA, 0 }
   };
-
+  Camera* current_camera_;
   
   float clear_color_[4];
 };

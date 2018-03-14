@@ -3,36 +3,15 @@
 #include "fstream"
 #include "Core\Transform.h"
 #include "Resources\Model.h"
+#include "Core/Camera.h"
 #include <D3D11.h>
 #include <vector>
 #include <glm\gtc\matrix_transform.hpp>
 
 const unsigned int max_line_count_ = 500;
 
-struct Camera
-{
-  Camera() = default;
+std::vector<resources::Vertex> line_vertices;
 
-  Camera(float width, float height)
-  {
-    view = glm::lookAtLH(pos, target, up); // left handed winding order
-    persp = glm::perspectiveFovLH_ZO((float)glm::radians(90.0f), width, height, 1.0f, 1000.0f);
-  }
-  void Move(float value)
-  {
-    pos.z -= value;
-    view = glm::lookAtLH(pos, target, up); // left handed winding order
-  }
-  Vec3 pos = Vec3(0.0f, 3.0f, -8.0f);
-  Vec3 target = Vec3(0.0f, 0.0f, 0.0f);
-  Vec3 up = Vec3(0.0f, 1.0f, 0.0f);
-
-  Mat44 view;
-  Mat44 persp;
-
-};
-
-std::vector<resources::G_Vertex> line_vertices;
 struct constant_buffer
 {
   Mat44 world;
@@ -41,63 +20,7 @@ struct constant_buffer
 };
 
 constant_buffer cb_per_obj;
-Camera cam;
-
-Transform obj0;
-Transform obj1;
-
-float rot = 0.01f;
-
-// hardcoded quad for now
-resources::G_Vertex quad_vertices[] = {
-  resources::G_Vertex{ Vec3{ -0.5f, -0.5f, 1.7f }, Vec4(1.0f, 0.0f, 0.0f, 1.0f) },
-  resources::G_Vertex{ Vec3{ -0.5f, 0.5f,  1.7f }, Vec4(0.0f, 1.0f, 0.0f, 1.0f) },
-  resources::G_Vertex{ Vec3{ 0.5f, 0.5f,   1.7f }, Vec4(0.0f, 0.0f, 1.0f, 1.0f) },
-  resources::G_Vertex{ Vec3{ 0.5f, -0.5f,  1.7f }, Vec4(0.0f, 1.0f, 0.0f, 1.0f) }
-};
-
-uint32_t quad_indices[] = {
-  0, 1, 2,
-  0, 2, 3
-};
-
-// hardcoded cube
-resources::G_Vertex cube_vertices[] = {
-  resources::G_Vertex{ Vec3{ -1.0f, -1.0f, -1.0f }, Vec4{ 1.0f, 0.0f, 0.0f, 1.0f } },
-  resources::G_Vertex{ Vec3{ -1.0f,  1.0f, -1.0f }, Vec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
-  resources::G_Vertex{ Vec3{  1.0f,  1.0f, -1.0f }, Vec4{ 0.0f, 0.0f, 1.0f, 1.0f } },
-  resources::G_Vertex{ Vec3{  1.0f, -1.0f, -1.0f }, Vec4{ 1.0f, 0.0f, 0.0f, 1.0f } },
-  resources::G_Vertex{ Vec3{ -1.0f, -1.0f,  1.0f }, Vec4{ 0.0f, 1.0f, 0.0f, 1.0f } },
-  resources::G_Vertex{ Vec3{ -1.0f,  1.0f,  1.0f }, Vec4{ 0.0f, 0.0f, 1.0f, 1.0f } },
-  resources::G_Vertex{ Vec3{  1.0f,  1.0f,  1.0f }, Vec4{ 1.0f, 0.0f, 0.0f, 1.0f } },
-  resources::G_Vertex{ Vec3{  1.0f, -1.0f,  1.0f }, Vec4{ 0.0f, 1.0f, 0.0f, 1.0f } }
-};
-
-uint32_t cube_indices[] = {
-  // front face
-  0, 1, 2,
-  0, 2, 3,
-
-  // back face
-  4, 6, 5,
-  4, 7, 6,
-
-  // left face
-  4, 5, 1,
-  4, 1, 0,
-
-  // right face
-  3, 2, 6,
-  3, 6, 7,
-
-  // top face
-  1, 5, 6,
-  1, 6, 2,
-
-  // bottom face
-  4, 0, 3,
-  4, 3, 7
-};
+// Camera cam;
 
 D3D11Renderer::D3D11Renderer() :
   clear_color_{ 0.0f ,0.0f ,0.0f ,0.0f }
@@ -110,7 +33,7 @@ D3D11Renderer::~D3D11Renderer()
 
 bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
 {
-  cam = Camera((float)screen_size.x, (float)screen_size.y);
+  //cam = Camera((float)screen_size.x, (float)screen_size.y, 90.0f);
 
   /*DX11 intialization*/
   HRESULT result;
@@ -234,22 +157,22 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
   /*create line buffer*/
   D3D11_BUFFER_DESC line_buffer_desc;
   ZeroMemory(&line_buffer_desc, sizeof(D3D11_BUFFER_DESC));
-  line_buffer_desc.ByteWidth = max_line_count_ * 2;
+  line_buffer_desc.ByteWidth = max_line_count_ * 2 * sizeof(resources::Vertex);
   line_buffer_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
   line_buffer_desc.CPUAccessFlags = NULL;
   line_buffer_desc.MiscFlags = NULL;
   line_buffer_desc.StructureByteStride = NULL;
   line_buffer_desc.Usage = D3D11_USAGE_DEFAULT;
 
-  result = d3d11_device_->CreateBuffer(&line_buffer_desc, NULL, &vert_buffers_[1]);
+  result = d3d11_device_->CreateBuffer(&line_buffer_desc, NULL, &line_buffer_);
 
-  uint32_t stride = sizeof(resources::G_Vertex);
+  uint32_t stride = sizeof(resources::Vertex);
   uint32_t offset = 0;
   d3d11_device_context_->IASetVertexBuffers(0, 1, &line_buffer_, &stride, &offset);
   // create input layout and set primitive topology
-  d3d11_device_->CreateInputLayout(layout, sizeof(layout) / sizeof(D3D11_INPUT_ELEMENT_DESC), vs_buf.data(), vs_buf.size(), &vert_layout_);
+  result = d3d11_device_->CreateInputLayout(layout, sizeof(layout) / sizeof(D3D11_INPUT_ELEMENT_DESC), vs_buf.data(), vs_buf.size(), &vert_layout_);
   d3d11_device_context_->IASetInputLayout(vert_layout_);
-  d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+  d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 
   assert(vert_layout_ != nullptr);
 
@@ -312,74 +235,40 @@ void D3D11Renderer::SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
   clear_color_[3] = { mult * a };
 }
 
-void D3D11Renderer::DrawLine(const Vec3 & start, const Vec3 end)
+void D3D11Renderer::AddLine(const Vec3 & from, const Vec3 to)
 {
-  line_vertices.push_back({ start, Vec4(0.0f,1.0f,0.0f,1.0f) });
-  line_vertices.push_back({ end, Vec4(0.0f,1.0f,0.0f,1.0f) });
+  resources::Vertex start{ from, Vec3(), Vec4(), Vec2() };
+  resources::Vertex end{ to, Vec3(), Vec4(), Vec2() };
+  line_vertices.push_back({ start });
+  line_vertices.push_back({ end });
 }
 
 void D3D11Renderer::Draw()
 {
-  DrawLine(Vec3(-2.0f, 2.0f, 0.0f), Vec3(2.0f, -2.0f, 0.0f));
-  DrawLine(Vec3(2.0f, -2.0f, 0.0f), Vec3(-2.0f, -2.0f, 0.0f));
-
-  /*temp scene update*/
-  rot += 0.0005f;
-  if (rot > 6.28f)
-  {
-    rot = 0.0f;
-  }
-
-  Mat44 obj0_world;
-  Mat44 rotation = glm::rotate(rot, Vec3(0, 1, 0));
-  Mat44 translation = glm::translate(Vec3(0, 0, 0));
-  obj0_world = translation * rotation;
-
-  Mat44 obj1_local;
-  rotation = glm::rotate(rot, Vec3(0,1,0));
-  Mat44 scale = glm::scale(Vec3(1.3f, 1.3f, 1.3f));
-  translation = glm::translate(Vec3(0, 0, 4));
-  obj1_local = translation * rotation * scale;
-
-  Mat44 obj1_world = obj0_world * obj1_local;
-
   d3d11_device_context_->ClearRenderTargetView(render_target_view_, clear_color_);
   d3d11_device_context_->ClearDepthStencilView(depth_stencil_view_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-  /*draw obj0*/
-  cb_per_obj.world = glm::transpose(obj0_world);
-  cb_per_obj.view = glm::transpose(cam.view);
-  cb_per_obj.persp = glm::transpose(cam.persp);
-  d3d11_device_context_->UpdateSubresource(cb_per_object_buffer_, 0, NULL, &cb_per_obj, 0, 0);
-  d3d11_device_context_->VSSetConstantBuffers(0, 1, &cb_per_object_buffer_);
-  d3d11_device_context_->DrawIndexed(36, 0, 0);
-
-  /*draw obj1*/
-  cb_per_obj.world = glm::transpose(obj1_world);
-  d3d11_device_context_->UpdateSubresource(cb_per_object_buffer_, 0, NULL, &cb_per_obj, 0, 0);
-  d3d11_device_context_->VSSetConstantBuffers(0, 1, &cb_per_object_buffer_);
-  d3d11_device_context_->DrawIndexed(36, 0, 0);
 
   cb_per_obj.world = { 1,0,0,0,
                        0,1,0,0,
                        0,0,1,0,
                        0,0,0,1 };
+  cb_per_obj.view = glm::transpose(current_camera_->view());
+  cb_per_obj.persp = glm::transpose(current_camera_->perspective());
+
   d3d11_device_context_->UpdateSubresource(cb_per_object_buffer_, 0, NULL, &cb_per_obj, 0, 0);
-  d3d11_device_context_->UpdateSubresource(vert_buffers_[1], 0, NULL, line_vertices.data(), 0, 0);
+  d3d11_device_context_->VSSetConstantBuffers(0, 1, &cb_per_object_buffer_);
 
-  uint32_t stride = sizeof(resources::G_Vertex);
-  uint32_t offset = 0;
-  d3d11_device_context_->IASetVertexBuffers(0, 1, &vert_buffers_[1], &stride, &offset);
-  d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+  d3d11_device_context_->UpdateSubresource(line_buffer_, 0, NULL, line_vertices.data(), 0, 0);
+
   d3d11_device_context_->Draw((unsigned int)line_vertices.size(), 0);
-  line_vertices.clear();
-
   swap_chain_->Present(0, 0);
 
-  stride = sizeof(resources::G_Vertex);
-  offset = 0;
-  d3d11_device_context_->IASetVertexBuffers(0, 1, &vert_buffers_[0], &stride, &offset);
-  d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+  line_vertices.clear();
+}
+
+void D3D11Renderer::SetCamera(Camera * cam)
+{
+  current_camera_ = cam;
 }
 
 void D3D11Renderer::ReadShader(const char* shader_name, std::vector<char>& buffer)

@@ -9,6 +9,7 @@
 #include "Input/Input.h"
 #include "Core/Transform.h"
 #include "Resources/GLTFLoader.h"
+#include "Core/Camera.h"
 
 int main()
 {
@@ -26,6 +27,8 @@ int main()
 	// game initialization
   D3D11Renderer renderer;
   renderer.Intialize(handle, resolution);
+  Camera cam((float)resolution.x, (float)resolution.y, 90.0f);
+  renderer.SetCamera(&cam);
 
   resources::Run();
 
@@ -63,6 +66,9 @@ int main()
       }
 
 		}
+    cam.Move(Vec3(0, 0, 1), -0.0001f);
+    renderer.AddLine(Vec3(-2.0f, 2.0f, 0.0f), Vec3(2.0f, -2.0f, 0.0f));
+    renderer.AddLine(Vec3(2.0f, -2.0f, 0.0f), Vec3(-2.0f, -2.0f, 0.0f));
     renderer.Draw();
 	}
     return 0;

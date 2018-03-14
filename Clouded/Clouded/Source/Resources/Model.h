@@ -3,12 +3,6 @@
 
 namespace resources
 {
-  struct G_Vertex
-  {
-    Vec3 position;
-    Vec4 color;
-  };
-
   class Model
   {
   public:

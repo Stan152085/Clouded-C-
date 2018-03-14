@@ -98,6 +98,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Core\Camera.h" />
     <ClInclude Include="Source\Core\Transform.h" />
     <ClInclude Include="Source\Graphics\renderer.h" />
     <ClInclude Include="Source\imgui\imconfig.h" />
@@ -126,6 +127,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Clouded.cpp" />
+    <ClCompile Include="Source\Core\Camera.cpp" />
     <ClCompile Include="Source\Graphics\Renderer.cpp" />
     <ClCompile Include="Source\Resources\GLTFLoader.cpp" />
     <ClCompile Include="Source\Resources\Mesh.cpp" />
