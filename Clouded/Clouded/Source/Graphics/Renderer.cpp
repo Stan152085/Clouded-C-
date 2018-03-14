@@ -1,12 +1,10 @@
 #include "stdafx.h"
 #include "renderer.h"
 #include "fstream"
-#include "Core\Transform.h"
 #include "Resources\Model.h"
-#include "Core/Camera.h"
+#include "Core\Camera.h"
 #include <D3D11.h>
-#include <vector>
-#include <glm\gtc\matrix_transform.hpp>
+#include "DebugRenderer.h"
 
 constexpr unsigned int max_line_count_ = 500;
 uint32_t current_line_count_ = 0;
@@ -19,7 +17,6 @@ struct constant_buffer
   Mat44 view;
   Mat44 persp;
 };
-
 constant_buffer cb_per_obj;
 // Camera cam;
 
@@ -30,7 +27,6 @@ D3D11Renderer::D3D11Renderer() :
 
 D3D11Renderer::~D3D11Renderer()
 {
-
 }
 
 bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
@@ -281,6 +277,12 @@ void D3D11Renderer::SetCamera(Camera * cam)
 
 void D3D11Renderer::EnableDebugDraw()
 {
+  DebugRenderer::renderer_ = this;
+}
+
+void D3D11Renderer::DisableDebugDraw()
+{
+  DebugRenderer::renderer_ = nullptr;
 }
 
 void D3D11Renderer::ReadShader(const char* shader_name, std::vector<char>& buffer)

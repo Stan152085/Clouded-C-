@@ -7,11 +7,21 @@ class Camera;
 namespace resources
 {
   struct Vertex;
+  class Model;
 }
 
+struct GPUModel
+{
+  ID3D11Buffer* vert_buffer;
+  ID3D11Buffer* idx_buffer;
+  std::vector<uint8_t> offsets;
+};
+
+using GPUModelHandle = GPUModel*;
 
 class D3D11Renderer
 {
+
 public:
 	D3D11Renderer();
 	~D3D11Renderer();
@@ -24,7 +34,7 @@ public:
 	void Draw();
   void SetCamera(Camera* cam);
   void EnableDebugDraw();
-
+  void DisableDebugDraw();
 private:
   void ReadShader(const char* shader_name, std::vector<char>& buffer);
 

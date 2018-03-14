@@ -102,6 +102,7 @@
     <ClInclude Include="Source\Gameplay\Map\HexagonGrid.h" />
     <ClInclude Include="Source\Core\Camera.h" />
     <ClInclude Include="Source\Core\Transform.h" />
+    <ClInclude Include="Source\Graphics\DebugRenderer.h" />
     <ClInclude Include="Source\Graphics\renderer.h" />
     <ClInclude Include="Source\imgui\imconfig.h" />
     <ClInclude Include="Source\imgui\imgui.h" />
@@ -133,6 +134,7 @@
     <ClCompile Include="Source\Clouded.cpp" />
     <ClCompile Include="Source\Gameplay\Map\HexagonGrid.cpp" />
     <ClCompile Include="Source\Core\Camera.cpp" />
+    <ClCompile Include="Source\Graphics\DebugRenderer.cpp" />
     <ClCompile Include="Source\Graphics\Renderer.cpp" />
     <ClCompile Include="Source\Math\CubicCoord.cpp" />
     <ClCompile Include="Source\Resources\GLTFLoader.cpp" />
