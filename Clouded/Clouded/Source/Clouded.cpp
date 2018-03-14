@@ -9,6 +9,7 @@
 #include "Input/Input.h"
 #include "Core/Transform.h"
 #include "Resources/GLTFLoader.h"
+#include "Math/Bounds.h"
 
 int main()
 {
@@ -28,7 +29,6 @@ int main()
   renderer.Intialize(handle, resolution);
 
   resources::Run();
-
   Transform trans;
   Mat44 test0 = trans.GetInversedMatrix();
   trans.Translate(Vec3(10, 0, 0));

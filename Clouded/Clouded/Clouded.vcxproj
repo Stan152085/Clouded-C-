@@ -105,6 +105,7 @@
     <ClInclude Include="Source\imgui\stb_rect_pack.h" />
     <ClInclude Include="Source\imgui\stb_textedit.h" />
     <ClInclude Include="Source\imgui\stb_truetype.h" />
+    <ClInclude Include="Source\Math\Bounds.h" />
     <ClInclude Include="Source\Math\math_defines.h" />
     <ClInclude Include="Source\Core\Transform.h" />
     <ClInclude Include="Source\Resources\GLTFLoader.h" />
