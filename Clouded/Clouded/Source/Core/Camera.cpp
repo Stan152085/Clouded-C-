@@ -77,7 +77,7 @@ Camera::Camera(float width, float height, float fov)
 void Camera::Move(Vec3 direction, float value)
 {
   pos_ += glm::normalize(direction) * value;
-  view_ = glm::lookAtLH(pos_, target_, up_); // left handed winding order
+  view_ = glm::translate(view_, glm::normalize(direction) * value);
 }
 
 void Camera::set_fov(float degrees)
