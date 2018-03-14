@@ -268,7 +268,7 @@ void D3D11Renderer::Draw()
   // memcpy_s(buffer, sizeof(buffer), line_vertices.data(), line_vertices.size() * sizeof(resources::Vertex));
   d3d11_device_context_->UpdateSubresource(line_buffer_, 0, NULL, line_vertices.data(), 0, 0);
 
-  d3d11_device_context_->Draw(current_line_count_, 0);
+  d3d11_device_context_->Draw(current_line_count_ * 2, 0);
   swap_chain_->Present(0, 0);
   
   current_line_count_ = 0;
