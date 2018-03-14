@@ -9,13 +9,13 @@
 	using Vec3i = glm::i32vec3;
 	using Vec4i = glm::i32vec4;
 
-	using Vec2u = glm::u32vec2;
-	using Vec3u = glm::u32vec3;
-	using Vec4u = glm::u32vec4;
+  using Vec2u = glm::u32vec2;
+  using Vec3u = glm::u32vec3;
+  using Vec4u = glm::u32vec4;
 
-	using Vec2 = glm::f32vec2;
-	using Vec3 = glm::f32vec3;
-	using Vec4 = glm::f32vec4;
+  using Vec2 = glm::f32vec2;
+  using Vec3 = glm::f32vec3;
+  using Vec4 = glm::f32vec4;
 
 	using Mat22 = glm::mat2x2;
 	using Mat23 = glm::mat2x3;
