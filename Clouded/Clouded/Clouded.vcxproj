@@ -98,6 +98,8 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Gameplay\Map\HexagonTile.h" />
+    <ClInclude Include="Source\Gameplay\Map\HexagonGrid.h" />
     <ClInclude Include="Source\Core\Camera.h" />
     <ClInclude Include="Source\Core\Transform.h" />
     <ClInclude Include="Source\Graphics\renderer.h" />
@@ -107,6 +109,8 @@
     <ClInclude Include="Source\imgui\stb_rect_pack.h" />
     <ClInclude Include="Source\imgui\stb_textedit.h" />
     <ClInclude Include="Source\imgui\stb_truetype.h" />
+    <ClInclude Include="Source\Math\Bounds.h" />
+    <ClInclude Include="Source\Math\CubicCoord.h" />
     <ClInclude Include="Source\Math\math_defines.h" />
     <ClInclude Include="Source\Resources\GLTFLoader.h" />
     <ClInclude Include="Source\Resources\Material.h" />
@@ -127,8 +131,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Clouded.cpp" />
+    <ClCompile Include="Source\Gameplay\Map\HexagonGrid.cpp" />
     <ClCompile Include="Source\Core\Camera.cpp" />
     <ClCompile Include="Source\Graphics\Renderer.cpp" />
+    <ClCompile Include="Source\Math\CubicCoord.cpp" />
     <ClCompile Include="Source\Resources\GLTFLoader.cpp" />
     <ClCompile Include="Source\Resources\Mesh.cpp" />
     <ClCompile Include="Source\Resources\Model.cpp" />
