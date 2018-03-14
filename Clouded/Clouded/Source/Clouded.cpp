@@ -9,6 +9,9 @@
 #include "Input/Input.h"
 #include "Core/Transform.h"
 #include "Resources/GLTFLoader.h"
+#include "Core/Camera.h"
+#include "Math/Bounds.h"
+#include "Gameplay/Map/HexagonGrid.h"
 
 int main()
 {
@@ -26,20 +29,11 @@ int main()
 	// game initialization
   D3D11Renderer renderer;
   renderer.Intialize(handle, resolution);
-
+  Camera cam((float)resolution.x, (float)resolution.y, 60.0f);
+  renderer.SetCamera(&cam);
+  GridBounds bounds = GridBounds(5,5);
+  HexagonGrid grid = HexagonGrid(bounds, 01.0f);
   resources::Run();
-
-  Transform trans;
-  Mat44 test0 = trans.GetInversedMatrix();
-  trans.Translate(Vec3(10, 0, 0));
-  test0 = trans.GetMatrix();
-  test0 = trans.GetInversedMatrix();
-  test0 *= trans.GetMatrix();
-  trans.SetRotation(glm::normalize(Quat(0.5f,0.7f,0.7f,0.1f)));
-  trans.SetScale(5.0f, 2.0f, 3.0f);
-  test0 = trans.GetMatrix();
-  test0 = trans.GetInversedMatrix();
-  test0 *= trans.GetMatrix();
 
 	while (window.isOpen())
 	{
@@ -59,10 +53,36 @@ int main()
 			}
       else if (event.type == sf::Event::EventType::KeyPressed)
       {
+        switch (event.key.code)
+        {
+          case sf::Keyboard::Up:
+          {
+            cam.Move(Vec3(0,-1,0), 0.1f);
+            break;
+          }
+          case sf::Keyboard::Left:
+          {
+            cam.Move(Vec3(1, 0, 0), 0.1f);
+            break;
+          }
+          case sf::Keyboard::Right:
+          {
+            cam.Move(Vec3(-1, 0, 0), 0.1f);
+            break;
+          }
+          case sf::Keyboard::Down:
+          {
+            cam.Move(Vec3(0, 1, 0), 0.1f);
+            break;
+          }
+        default:
+          break;
+        }
         renderer.SetClearColor(0, 0, 0, 0);
       }
 
 		}
+    grid.DebugDraw(renderer);
     renderer.Draw();
 	}
     return 0;
