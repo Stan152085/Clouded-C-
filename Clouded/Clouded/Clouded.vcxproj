@@ -98,6 +98,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Core\Transform.h" />
     <ClInclude Include="Source\Graphics\renderer.h" />
     <ClInclude Include="Source\imgui\imconfig.h" />
     <ClInclude Include="Source\imgui\imgui.h" />
@@ -107,8 +108,13 @@
     <ClInclude Include="Source\imgui\stb_truetype.h" />
     <ClInclude Include="Source\Math\math_defines.h" />
     <ClInclude Include="Source\Resources\GLTFLoader.h" />
+    <ClInclude Include="Source\Resources\Material.h" />
+    <ClInclude Include="Source\Resources\Mesh.h" />
     <ClInclude Include="Source\Resources\Model.h" />
     <ClInclude Include="Source\Resources\ResourceManagementUtils.h" />
+    <ClInclude Include="Source\Resources\Texel.h" />
+    <ClInclude Include="Source\Resources\Texture.h" />
+    <ClInclude Include="Source\Resources\Vertex.h" />
     <ClInclude Include="Source\Serialization\FileReader.h" />
     <ClInclude Include="Source\Serialization\FileWriter.h" />
     <ClInclude Include="Source\Serialization\Json\json-forwards.h" />
@@ -122,6 +128,7 @@
     <ClCompile Include="Source\Clouded.cpp" />
     <ClCompile Include="Source\Graphics\Renderer.cpp" />
     <ClCompile Include="Source\Resources\GLTFLoader.cpp" />
+    <ClCompile Include="Source\Resources\Texture.cpp" />
     <ClCompile Include="Source\Serialization\FileReader.cpp" />
     <ClCompile Include="Source\Serialization\FileWriter.cpp" />
     <ClCompile Include="Source\Serialization\jsoncpp.cpp" />

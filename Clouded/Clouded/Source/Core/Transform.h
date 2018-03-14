@@ -21,6 +21,13 @@
       translation(translation)
     {}
 
+    inline void Reset()
+    {
+      translation = Vec3(0,0,0);
+      rotation = Quat(1.0f, 0.0f, 0.0f, 0.0f);
+      scale = Vec3(1, 1, 1);
+    }
+
     inline void Translate(const Vec3& trans)
     {
       translation += trans;
@@ -100,15 +107,15 @@
 
     inline Mat44 GetMatrix()
     {
-      return glm::scale(scale) *
-        glm::toMat4(rotation)*
-        glm::translate(Vec3(translation.x, translation.y, translation.z));
+      return  glm::translate(Vec3(translation.x, translation.y, translation.z)) *
+              glm::toMat4(rotation)*
+              glm::scale(scale);
     }
     inline Mat44 GetInversedMatrix()
     {
-      return glm::translate(Vec3(-translation.x, -translation.y, -translation.z))*
-        glm::toMat4(glm::conjugate(rotation))*
-        glm::scale(Vec3(1.0f / scale.x, 1.0f / scale.y, 1.0f / scale.z));
+      return glm::scale(Vec3(1.0f / scale.x, 1.0f / scale.y, 1.0f / scale.z))*
+             glm::toMat4(glm::conjugate(rotation))*
+             glm::translate(Vec3(-translation.x, -translation.y, -translation.z));
     }
   private:
     Vec3 scale;

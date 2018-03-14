@@ -3,9 +3,10 @@
 
 namespace resources
 {
-  struct Vertex
+  struct G_Vertex
   {
     Vec3 position;
+    Vec4 color;
   };
 
   class Model
