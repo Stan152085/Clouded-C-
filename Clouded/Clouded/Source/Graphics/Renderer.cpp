@@ -239,7 +239,7 @@ void D3D11Renderer::SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 
 void D3D11Renderer::AddLine(const Vec3 & from, const Vec3 to)
 {
-  if (current_line_count_ * 0.5f >= max_line_count_)
+  if (current_line_count_ >= max_line_count_)
   {
     printf("exeeding the maxim number of debug lines. some lnes will not be drawn");
     return;
