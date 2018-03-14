@@ -8,9 +8,10 @@
 #include <vector>
 #include <glm\gtc\matrix_transform.hpp>
 
-const unsigned int max_line_count_ = 500;
+constexpr unsigned int max_line_count_ = 500;
+uint32_t current_line_count_ = 0;
 
-std::vector<resources::Vertex> line_vertices;
+std::vector<resources::Vertex> line_vertices(max_line_count_ * 2);
 
 struct constant_buffer
 {
@@ -29,6 +30,7 @@ D3D11Renderer::D3D11Renderer() :
 
 D3D11Renderer::~D3D11Renderer()
 {
+
 }
 
 bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
@@ -213,13 +215,13 @@ bool D3D11Renderer::Release()
   d3d11_device_context_->Release();
   render_target_view_->Release();
   line_buffer_->Release();
-  index_buffer_->Release();
+  // index_buffer_->Release();
   depth_stencil_buffer_->Release();
   depth_stencil_view_->Release();
   vs_->Release();
   ps_->Release();
-  vs_buffer_->Release();
-  ps_buffer_->Release();
+  // vs_buffer_->Release();
+  // ps_buffer_->Release();
   vert_layout_->Release();
   cb_per_object_buffer_->Release();
   wireframe_->Release();
@@ -237,10 +239,14 @@ void D3D11Renderer::SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 
 void D3D11Renderer::AddLine(const Vec3 & from, const Vec3 to)
 {
-  resources::Vertex start{ from, Vec3(), Vec4(), Vec2() };
-  resources::Vertex end{ to, Vec3(), Vec4(), Vec2() };
-  line_vertices.push_back({ start });
-  line_vertices.push_back({ end });
+  if (current_line_count_ * 0.5f >= max_line_count_)
+  {
+    printf("exeeding the maxim number of debug lines. some lnes will not be drawn");
+    return;
+  }
+  line_vertices[current_line_count_ * 2] = { from, Vec3(), Vec4(), Vec2() };
+  line_vertices[current_line_count_ * 2 + 1] = { to, Vec3(), Vec4(), Vec2() };
+  ++current_line_count_;
 }
 
 void D3D11Renderer::Draw()
@@ -258,17 +264,23 @@ void D3D11Renderer::Draw()
   d3d11_device_context_->UpdateSubresource(cb_per_object_buffer_, 0, NULL, &cb_per_obj, 0, 0);
   d3d11_device_context_->VSSetConstantBuffers(0, 1, &cb_per_object_buffer_);
 
+
+  // memcpy_s(buffer, sizeof(buffer), line_vertices.data(), line_vertices.size() * sizeof(resources::Vertex));
   d3d11_device_context_->UpdateSubresource(line_buffer_, 0, NULL, line_vertices.data(), 0, 0);
 
-  d3d11_device_context_->Draw((unsigned int)line_vertices.size(), 0);
+  d3d11_device_context_->Draw(current_line_count_, 0);
   swap_chain_->Present(0, 0);
-
-  line_vertices.clear();
+  
+  current_line_count_ = 0;
 }
 
 void D3D11Renderer::SetCamera(Camera * cam)
 {
   current_camera_ = cam;
+}
+
+void D3D11Renderer::EnableDebugDraw()
+{
 }
 
 void D3D11Renderer::ReadShader(const char* shader_name, std::vector<char>& buffer)

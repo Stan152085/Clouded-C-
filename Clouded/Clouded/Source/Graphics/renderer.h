@@ -9,6 +9,7 @@ namespace resources
   struct Vertex;
 }
 
+
 class D3D11Renderer
 {
 public:
@@ -16,11 +17,13 @@ public:
 	~D3D11Renderer();
 
 	bool Intialize(HWND window_handle, const Vec2u& screen_size);
+
   bool Release();
   void SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
   void AddLine(const Vec3& from, const Vec3 to );
 	void Draw();
   void SetCamera(Camera* cam);
+  void EnableDebugDraw();
 
 private:
   void ReadShader(const char* shader_name, std::vector<char>& buffer);
@@ -33,15 +36,13 @@ private:
   ID3D11Texture2D* depth_stencil_buffer_;
 
   /*primitive / model resources*/
-  ID3D11Buffer* vert_buffers_;
-  ID3D11Buffer* index_buffer_;
+  //ID3D11Buffer* vert_buffers_;
+  //ID3D11Buffer* index_buffer_;
 
   ID3D11Buffer* line_buffer_;
   /*shader program resources*/
   ID3D11VertexShader* vs_;
   ID3D11PixelShader* ps_;
-  ID3D10Blob* vs_buffer_;
-  ID3D10Blob* ps_buffer_;
   ID3D11InputLayout* vert_layout_;
 
   /*constant buffers*/
@@ -60,3 +61,4 @@ private:
   
   float clear_color_[4];
 };
+

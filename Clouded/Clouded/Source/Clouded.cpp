@@ -69,6 +69,10 @@ int main()
     cam.Move(Vec3(0, 0, 1), -0.0001f);
     renderer.AddLine(Vec3(-2.0f, 2.0f, 0.0f), Vec3(2.0f, -2.0f, 0.0f));
     renderer.AddLine(Vec3(2.0f, -2.0f, 0.0f), Vec3(-2.0f, -2.0f, 0.0f));
+    renderer.AddLine(Vec3(-2.0f, 2.0f, 0.0f), Vec3(2.0f, -2.0f, 0.0f));
+    renderer.AddLine(Vec3(2.0f, -2.0f, 0.0f), Vec3(-2.0f, -2.0f, 0.0f));
+    renderer.AddLine(Vec3(-2.0f, 2.0f, 0.0f), Vec3(2.0f, -2.0f, 0.0f));
+    renderer.AddLine(Vec3(2.0f, -2.0f, 0.0f), Vec3(-2.0f, -2.0f, 0.0f));
     renderer.Draw();
 	}
     return 0;
