@@ -27,8 +27,7 @@ int main()
   D3D11Renderer renderer;
   renderer.Intialize(handle, resolution);
 
-  resources::GLTFLoader loader;
-  loader.Run();
+  resources::Run();
 
   Transform trans;
   Mat44 test0 = trans.GetInversedMatrix();

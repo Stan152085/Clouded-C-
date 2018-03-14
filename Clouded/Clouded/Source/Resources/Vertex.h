@@ -5,8 +5,9 @@ namespace resources
 {
   struct Vertex
   {
-    Vec3 p;
-    Vec3 n;
+    Vec3 pos;
+    Vec3 norm;
+    Vec4 tang; // xyz is tangent, w is handedness
     Vec2 uv;
   };
 }

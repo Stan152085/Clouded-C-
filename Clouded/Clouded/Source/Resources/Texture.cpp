@@ -2,8 +2,9 @@
 #include "Texture.h"
 #include "Texel.h"
 
-resources::Texture::Texture(int width, int height, 
-  int components, std::vector<unsigned char>& data)
+resources::Texture::Texture(
+  const int width, const int height,
+  const int components, const unsigned char* data)
   :
   width_(width),
   height_(height),
@@ -12,9 +13,9 @@ resources::Texture::Texture(int width, int height,
   if (components == 1)
   {
     size_t idx = 0;
-    for (int y = 0; y < height; ++y)
+    for (int y = 0; y < height_; ++y)
     {
-      for (int x = 0; x < width; ++x, ++idx)
+      for (int x = 0; x < width_; ++x, ++idx)
       {
         pixels_[idx] = Texel(data[idx]);
       }
@@ -24,9 +25,9 @@ resources::Texture::Texture(int width, int height,
   {
     size_t pixel_idx = 0;
     size_t data_idx = 0;
-    for (int y = 0; y < height; ++y)
+    for (int y = 0; y < height_; ++y)
     {
-      for (int x = 0; x < width; ++x, ++pixel_idx, data_idx += 2)
+      for (int x = 0; x < width_; ++x, ++pixel_idx, data_idx += 2)
       {
         pixels_[pixel_idx] = Texel(data[data_idx], data[data_idx + 1]);
       }
@@ -36,9 +37,9 @@ resources::Texture::Texture(int width, int height,
   {
     size_t pixel_idx = 0;
     size_t data_idx = 0;
-    for (int y = 0; y < height; ++y)
+    for (int y = 0; y < height_; ++y)
     {
-      for (int x = 0; x < width; ++x, ++pixel_idx, data_idx += 2)
+      for (int x = 0; x < width_; ++x, ++pixel_idx, data_idx += 3)
       {
         pixels_[pixel_idx] = Texel(
           data[data_idx],
@@ -51,9 +52,9 @@ resources::Texture::Texture(int width, int height,
   {
     size_t pixel_idx = 0;
     size_t data_idx = 0;
-    for (int y = 0; y < height; ++y)
+    for (int y = 0; y < height_; ++y)
     {
-      for (int x = 0; x < width; ++x, ++pixel_idx, data_idx += 2)
+      for (int x = 0; x < width_; ++x, ++pixel_idx, data_idx += 4)
       {
         pixels_[pixel_idx] = Texel(
             data[data_idx],
