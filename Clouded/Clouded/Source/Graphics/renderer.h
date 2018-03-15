@@ -17,7 +17,7 @@ struct GPUModel
   std::vector<uint8_t> offsets;
 };
 
-using GPUModelHandle = GPUModel*;
+using GPUModelHandle = std::shared_ptr<GPUModel>;
 
 class D3D11Renderer
 {
@@ -30,11 +30,9 @@ public:
 
   bool Release();
   void SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
-  void AddLine(const Vec3& from, const Vec3 to );
+  void AddLine(const Vec3& from, const Vec3& to );
 	void Draw();
   void SetCamera(Camera* cam);
-  void EnableDebugDraw();
-  void DisableDebugDraw();
 private:
   void ReadShader(const char* shader_name, std::vector<char>& buffer);
 

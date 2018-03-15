@@ -126,7 +126,6 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
   // D3D11_BUFFER_DESC idx_buffer_desc;
   // ZeroMemory(&idx_buffer_desc, sizeof(D3D11_BUFFER_DESC));
   // idx_buffer_desc.ByteWidth = sizeof(cube_indices);
-  // idx_buffer_desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
   // idx_buffer_desc.CPUAccessFlags = NULL;
   // idx_buffer_desc.MiscFlags = NULL;
   // idx_buffer_desc.StructureByteStride = NULL;
@@ -233,7 +232,7 @@ void D3D11Renderer::SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
   clear_color_[3] = { mult * a };
 }
 
-void D3D11Renderer::AddLine(const Vec3 & from, const Vec3 to)
+void D3D11Renderer::AddLine(const Vec3& from, const Vec3& to)
 {
   if (current_line_count_ >= max_line_count_)
   {
@@ -273,16 +272,6 @@ void D3D11Renderer::Draw()
 void D3D11Renderer::SetCamera(Camera * cam)
 {
   current_camera_ = cam;
-}
-
-void D3D11Renderer::EnableDebugDraw()
-{
-  DebugRenderer::renderer_ = this;
-}
-
-void D3D11Renderer::DisableDebugDraw()
-{
-  DebugRenderer::renderer_ = nullptr;
 }
 
 void D3D11Renderer::ReadShader(const char* shader_name, std::vector<char>& buffer)

@@ -7,9 +7,9 @@ class DebugRenderer
 {
 public:
   DebugRenderer() = default;
-  void DrawLine(Vec3 from, Vec3 to);
+  static void DrawLine(const Vec3& from, const Vec3& to);
+  void set_renderer(D3D11Renderer* const renderer);
 
 private:
-  friend D3D11Renderer;
   static D3D11Renderer* renderer_;
 };

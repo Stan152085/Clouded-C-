@@ -14,6 +14,7 @@
 #include <vector>
 #include <string>
 #include <assert.h>
+#include <memory>
 
 // required std includes for the forward declared header
 #include <stdio.h>
