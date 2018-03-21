@@ -12,12 +12,12 @@ namespace resources
 
 struct GPUModel
 {
-  ID3D11Buffer* vert_buffer;
-  ID3D11Buffer* idx_buffer;
-  std::vector<uint8_t> offsets;
+  ID3D11Buffer* const vert_buffer;
+  ID3D11Buffer* const idx_buffer;
+  const std::vector<size_t> offsets;
 };
 
-using GPUModelHandle = std::shared_ptr<GPUModel>;
+using ModelHandle = std::shared_ptr<GPUModel>;
 
 class D3D11Renderer
 {
@@ -33,6 +33,12 @@ public:
   void AddLine(const Vec3& from, const Vec3& to );
 	void Draw();
   void SetCamera(Camera* cam);
+
+  void ReleaseFromGPU(ModelHandle handle);
+  ModelHandle PushToGPU(const resources::Model& model);
+
+  void DrawModel(std::shared_ptr<resources::Model> model);
+
 private:
   void ReadShader(const char* shader_name, std::vector<char>& buffer);
 
@@ -44,8 +50,8 @@ private:
   ID3D11Texture2D* depth_stencil_buffer_;
 
   /*primitive / model resources*/
-  //ID3D11Buffer* vert_buffers_;
-  //ID3D11Buffer* index_buffer_;
+  ID3D11Buffer* vert_buffers_;
+  ID3D11Buffer* index_buffer_;
 
   ID3D11Buffer* line_buffer_;
   /*shader program resources*/

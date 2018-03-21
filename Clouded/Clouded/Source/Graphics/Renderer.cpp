@@ -9,7 +9,7 @@
 constexpr unsigned int max_line_count_ = 500;
 uint32_t current_line_count_ = 0;
 
-std::vector<resources::Vertex> line_vertices(max_line_count_ * 2);
+resources::Vertex line_vertices[max_line_count_ * 2];
 
 struct constant_buffer
 {
@@ -71,7 +71,6 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
                                 &d3d11_device_,
                                 NULL,
                                 &d3d11_device_context_);
-
   if (FAILED(result))
   {
     printf("Failed to create swap chain \n");
@@ -236,7 +235,7 @@ void D3D11Renderer::AddLine(const Vec3& from, const Vec3& to)
 {
   if (current_line_count_ >= max_line_count_)
   {
-    printf("exeeding the maxim number of debug lines. some lnes will not be drawn");
+    printf("exeeding the maxim number of debug lines. some lines will not be drawn");
     return;
   }
   line_vertices[current_line_count_ * 2] = { from, Vec3(), Vec4(), Vec2() };
@@ -261,8 +260,7 @@ void D3D11Renderer::Draw()
 
 
   // memcpy_s(buffer, sizeof(buffer), line_vertices.data(), line_vertices.size() * sizeof(resources::Vertex));
-  d3d11_device_context_->UpdateSubresource(line_buffer_, 0, NULL, line_vertices.data(), 0, 0);
-
+  d3d11_device_context_->UpdateSubresource(line_buffer_, 0, NULL, line_vertices, 0, 0);
   d3d11_device_context_->Draw(current_line_count_ * 2, 0);
   swap_chain_->Present(0, 0);
   
@@ -272,6 +270,49 @@ void D3D11Renderer::Draw()
 void D3D11Renderer::SetCamera(Camera * cam)
 {
   current_camera_ = cam;
+}
+
+void D3D11Renderer::ReleaseFromGPU(ModelHandle handle)
+{
+}
+
+ModelHandle D3D11Renderer::PushToGPU(const resources::Model& model)
+{
+//  ID3D11Buffer* vertex_buffer;
+//  ID3D11Buffer* index_buffer;
+  std::vector<size_t> offsets (model.meshes().size());
+  size_t total_size = 0;
+  
+  for (size_t i = 0; i < model.meshes().size(); ++i)
+  {
+    offsets[i] = total_size;
+    total_size += model.meshes()[i].vertices().size();
+  }
+
+  D3D11_BUFFER_DESC vertex_buffer_desc{};
+  vertex_buffer_desc.ByteWidth = (uint32_t)(total_size * sizeof(resources::Vertex));
+  vertex_buffer_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+  vertex_buffer_desc.Usage = D3D11_USAGE_DEFAULT;
+
+  resources::Vertex* vertex_array = new resources::Vertex[total_size];
+  for (size_t i = 0; i < model.meshes().size(); ++i)
+  {
+   // memcpy(vertex_array, mesh.vertices().data(), off);
+    
+  }
+
+
+  D3D11_SUBRESOURCE_DATA vertex_data{};
+
+  // d3d11_device_->CreateBuffer();
+
+
+
+  return ModelHandle{};
+}
+
+void D3D11Renderer::DrawModel(std::shared_ptr<resources::Model> model)
+{
 }
 
 void D3D11Renderer::ReadShader(const char* shader_name, std::vector<char>& buffer)
