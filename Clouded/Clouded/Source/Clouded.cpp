@@ -31,7 +31,7 @@ int main()
   renderer.Intialize(handle, resolution);
   Camera cam((float)resolution.x, (float)resolution.y, 60.0f);
   renderer.SetCamera(&cam);
-  GridBounds bounds = GridBounds(5,5);
+  GridBounds bounds = GridBounds(5,10);
   HexagonGrid grid = HexagonGrid(bounds, 01.0f);
   resources::Run();
 

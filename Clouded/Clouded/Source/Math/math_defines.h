@@ -3,6 +3,7 @@
 #include <glm/common.hpp>
 #include <glm/matrix.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtc/constants.hpp>
 
 
 	using Vec2i = glm::i32vec2;
