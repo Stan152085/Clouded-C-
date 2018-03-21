@@ -113,7 +113,7 @@
     <ClInclude Include="Source\Math\Bounds.h" />
     <ClInclude Include="Source\Math\CubicCoord.h" />
     <ClInclude Include="Source\Math\math_defines.h" />
-    <ClInclude Include="Source\Resources\GLTFLoader.h" />
+    <ClInclude Include="Source\Resources\AssetManager.h" />
     <ClInclude Include="Source\Resources\Material.h" />
     <ClInclude Include="Source\Resources\Mesh.h" />
     <ClInclude Include="Source\Resources\Model.h" />
@@ -137,7 +137,7 @@
     <ClCompile Include="Source\Graphics\DebugRenderer.cpp" />
     <ClCompile Include="Source\Graphics\Renderer.cpp" />
     <ClCompile Include="Source\Math\CubicCoord.cpp" />
-    <ClCompile Include="Source\Resources\GLTFLoader.cpp" />
+    <ClCompile Include="Source\Resources\AssetManager.cpp" />
     <ClCompile Include="Source\Resources\Mesh.cpp" />
     <ClCompile Include="Source\Resources\Model.cpp" />
     <ClCompile Include="Source\Resources\Texture.cpp" />

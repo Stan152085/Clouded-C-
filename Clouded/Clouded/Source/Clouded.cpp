@@ -8,7 +8,7 @@
 #include "Graphics/renderer.h"
 #include "Input/Input.h"
 #include "Core/Transform.h"
-#include "Resources/GLTFLoader.h"
+#include "Resources/AssetManager.h"
 #include "Core/Camera.h"
 #include "Math/Bounds.h"
 #include "Gameplay/Map/HexagonGrid.h"
@@ -38,7 +38,7 @@ int main()
   renderer.SetCamera(&cam);
   GridBounds bounds = GridBounds(5,5);
   // HexagonGrid grid = HexagonGrid(bounds, 01.0f);
-  resources::Run();
+  resources::Run(renderer);
 
 	while (window.isOpen())
 	{

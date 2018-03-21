@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "GLTFLoader.h"
+#include "AssetManager.h"
 #include "Model.h"
 #include "Texture.h"
 #include "ResourceManagementUtils.h"
@@ -10,6 +10,8 @@
 #ifndef _DEBUG 
 #define TINYGLTF_NOEXCEPTION // optional. disable exception handling.
 #endif
+
+#include "Graphics/renderer.h"
 
 #include "TinyGLTF/tiny_gltf.h"
 #include <unordered_map>
@@ -52,7 +54,7 @@ namespace resources
   }
 
   template <typename T>
-  void GetVertexData(
+  void GetBufferData(
     const tinygltf::Model& source,
     const tinygltf::Accessor& acc,
     std::vector<T>& res)
@@ -247,7 +249,7 @@ namespace resources
         std::vector<unsigned short> indices;
         {
           const tinygltf::Accessor& acc = source.accessors[prim.indices];
-          GetVertexData<unsigned short>(source, acc, indices);
+          GetBufferData<unsigned short>(source, acc, indices);
         }
 
 
@@ -264,7 +266,7 @@ namespace resources
             if (it != prim.attributes.end())
             {
               const tinygltf::Accessor& acc = source.accessors[it->second];
-              GetVertexData<Vec3>(source, acc, positions);
+              GetBufferData<Vec3>(source, acc, positions);
             }
           }
 
@@ -276,7 +278,7 @@ namespace resources
             if (it != prim.attributes.end())
             {
               const tinygltf::Accessor& acc = source.accessors[it->second];
-              GetVertexData<Vec3>(source, acc, normals);
+              GetBufferData<Vec3>(source, acc, normals);
             }
           }
 
@@ -288,7 +290,7 @@ namespace resources
             if (it != prim.attributes.end())
             {
               const tinygltf::Accessor& acc = source.accessors[it->second];
-              GetVertexData<Vec4>(source, acc, tangents);
+              GetBufferData<Vec4>(source, acc, tangents);
             }
           }
 
@@ -300,7 +302,7 @@ namespace resources
             if (it != prim.attributes.end())
             {
               const tinygltf::Accessor& acc = source.accessors[it->second];
-              GetVertexData<Vec2>(source, acc, UVs);
+              GetBufferData<Vec2>(source, acc, UVs);
             }
           }
 
@@ -347,7 +349,8 @@ namespace resources
   }
 
   // Get a model from the cache. If it doesn't exist yet, load it
-  std::shared_ptr<resources::Model> GetModel(std::string& file, std::string& err)
+  ModelHandle AssetManager::GetModel(std::string& file,
+    D3D11Renderer& renderer, std::string& err)
   {
     // try to find the model in the map
     auto it = model_map.find(file);
@@ -361,20 +364,22 @@ namespace resources
     if (Load(file, gltf_model, err) == false)
     {
       // return a nullptr if load failed
-      return std::shared_ptr<resources::Model>(nullptr);
+      return nullptr;
     }
 
     // construct the clouded model from the gltf model
-    std::shared_ptr<Model> res(new Model());
-    ConstructModel(gltf_model, *res, file);
+    Model res;
+    ConstructModel(gltf_model, res, file);
+
+    ModelHandle gpu_handle = renderer.PushToGPU(res);
 
     // insert the new model into the map
-    model_map.insert(std::make_pair(file, res));
-    return res;
+    model_map.insert(std::make_pair(file, gpu_handle));
+    return gpu_handle;
   }
 
   // Get a texture from the cache. If it doesn't exist yet, load it
-  std::shared_ptr<resources::Texture> GetTexture(std::string& file, std::string& err)
+  std::shared_ptr<resources::Texture> AssetManager::GetTexture(std::string& file, std::string& err)
   {
     // try to find the texture in the map
     auto it = texture_map.find(file);
@@ -401,13 +406,14 @@ namespace resources
     return res;
   }
 
-  void CleanUp()
+  void AssetManager::CleanUp(D3D11Renderer& renderer)
   {
     ModelMap::iterator model_it;
     for (model_it = model_map.begin(); model_it != model_map.end(); ++model_it)
     {
       if (model_it->second.use_count() < 2)
       {
+        renderer.ReleaseFromGPU(model_it->second);
         model_map.erase(model_it);
       }
     }
@@ -415,25 +421,32 @@ namespace resources
     texture_map.clear();
   }
 
-  void Run()
+  void Run(D3D11Renderer& renderer)
   {
+    AssetManager manager;
     std::string file_name_cube = "../Assets/Samples/Cube/Cube.gltf";
     std::string file_name_duck = "../Assets/Samples/Duck/Duck.gltf";
+    std::string file_name_axe = "../Assets/Samples/Hexagon/MS_Axe.glb";
     std::string err;
 
     tinygltf::Model model_cube;
     tinygltf::Model model_duck;
+    tinygltf::Model model_axe;
 
     Load(file_name_cube, model_cube, err);
     Load(file_name_duck, model_duck, err);
+    Load(file_name_axe, model_axe, err);
 
     Model res_cube;
     Model res_duck;
+    Model res_axe;
     ConstructModel(model_cube, res_cube, file_name_cube);
     ConstructModel(model_duck, res_duck, file_name_duck);
+    ConstructModel(model_axe, res_axe, file_name_axe);
 
-    std::shared_ptr<Model> cube = GetModel(file_name_cube, err);
-    std::shared_ptr<Model> duck = GetModel(file_name_duck, err);
+    ModelHandle cube = manager.GetModel(file_name_cube, renderer, err);
+    ModelHandle duck = manager.GetModel(file_name_duck, renderer, err);
+    ModelHandle axe = manager.GetModel(file_name_axe, renderer, err);
 
     int test = 0;
   }
