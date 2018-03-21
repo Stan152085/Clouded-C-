@@ -1,12 +1,10 @@
 #include "stdafx.h"
 #include "renderer.h"
 #include "fstream"
-#include "Core\Transform.h"
 #include "Resources\Model.h"
-#include "Core/Camera.h"
+#include "Core\Camera.h"
 #include <D3D11.h>
-#include <vector>
-#include <glm\gtc\matrix_transform.hpp>
+#include "DebugRenderer.h"
 
 constexpr unsigned int max_line_count_ = 500;
 uint32_t current_line_count_ = 0;
@@ -19,7 +17,6 @@ struct constant_buffer
   Mat44 view;
   Mat44 persp;
 };
-
 constant_buffer cb_per_obj;
 // Camera cam;
 
@@ -30,7 +27,6 @@ D3D11Renderer::D3D11Renderer() :
 
 D3D11Renderer::~D3D11Renderer()
 {
-
 }
 
 bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
@@ -130,7 +126,6 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
   // D3D11_BUFFER_DESC idx_buffer_desc;
   // ZeroMemory(&idx_buffer_desc, sizeof(D3D11_BUFFER_DESC));
   // idx_buffer_desc.ByteWidth = sizeof(cube_indices);
-  // idx_buffer_desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
   // idx_buffer_desc.CPUAccessFlags = NULL;
   // idx_buffer_desc.MiscFlags = NULL;
   // idx_buffer_desc.StructureByteStride = NULL;
@@ -237,7 +232,7 @@ void D3D11Renderer::SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
   clear_color_[3] = { mult * a };
 }
 
-void D3D11Renderer::AddLine(const Vec3 & from, const Vec3 to)
+void D3D11Renderer::AddLine(const Vec3& from, const Vec3& to)
 {
   if (current_line_count_ >= max_line_count_)
   {
@@ -268,7 +263,7 @@ void D3D11Renderer::Draw()
   // memcpy_s(buffer, sizeof(buffer), line_vertices.data(), line_vertices.size() * sizeof(resources::Vertex));
   d3d11_device_context_->UpdateSubresource(line_buffer_, 0, NULL, line_vertices.data(), 0, 0);
 
-  d3d11_device_context_->Draw(current_line_count_, 0);
+  d3d11_device_context_->Draw(current_line_count_ * 2, 0);
   swap_chain_->Present(0, 0);
   
   current_line_count_ = 0;
@@ -277,10 +272,6 @@ void D3D11Renderer::Draw()
 void D3D11Renderer::SetCamera(Camera * cam)
 {
   current_camera_ = cam;
-}
-
-void D3D11Renderer::EnableDebugDraw()
-{
 }
 
 void D3D11Renderer::ReadShader(const char* shader_name, std::vector<char>& buffer)

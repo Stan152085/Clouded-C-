@@ -12,6 +12,7 @@
 #include "Core/Camera.h"
 #include "Math/Bounds.h"
 #include "Gameplay/Map/HexagonGrid.h"
+#include "Graphics\DebugRenderer.h"
 
 int main()
 {
@@ -23,16 +24,20 @@ int main()
   vr::EVRApplicationType type = vr::EVRApplicationType::VRApplication_Scene;
   vr::IVRSystem* vr_system = vr::VR_Init(&init_error, type);
   Input input(vr_system);
-	// window.han
+
 	window.create(mode, "Clouded");
 	sf::WindowHandle handle = window.getSystemHandle();
 	// game initialization
   D3D11Renderer renderer;
   renderer.Intialize(handle, resolution);
+  
+  DebugRenderer dbg_renderer;
+  dbg_renderer.set_renderer(&renderer);
+
   Camera cam((float)resolution.x, (float)resolution.y, 60.0f);
   renderer.SetCamera(&cam);
   GridBounds bounds = GridBounds(5,5);
-  HexagonGrid grid = HexagonGrid(bounds, 01.0f);
+  // HexagonGrid grid = HexagonGrid(bounds, 01.0f);
   resources::Run();
 
 	while (window.isOpen())
@@ -82,7 +87,8 @@ int main()
       }
 
 		}
-    grid.DebugDraw(renderer);
+    DebugRenderer::DrawLine(Vec3(-2.0f,0.0f,0.0f), Vec3(2.0f, 0.0f, 0.0f));
+    // grid.DebugDraw(renderer);
     renderer.Draw();
 	}
     return 0;

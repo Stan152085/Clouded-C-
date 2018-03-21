@@ -14,11 +14,12 @@
 #include <vector>
 #include <string>
 #include <assert.h>
+#include <memory>
 
 // required std includes for the forward declared header
 #include <stdio.h>
 #include <tchar.h>
 #include <stdint.h>
-
+#include <glm\gtc\matrix_transform.hpp>
 
 // TODO: reference additional headers your program requires here

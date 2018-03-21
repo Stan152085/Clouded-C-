@@ -7,11 +7,21 @@ class Camera;
 namespace resources
 {
   struct Vertex;
+  class Model;
 }
 
+struct GPUModel
+{
+  ID3D11Buffer* vert_buffer;
+  ID3D11Buffer* idx_buffer;
+  std::vector<uint8_t> offsets;
+};
+
+using GPUModelHandle = std::shared_ptr<GPUModel>;
 
 class D3D11Renderer
 {
+
 public:
 	D3D11Renderer();
 	~D3D11Renderer();
@@ -20,11 +30,9 @@ public:
 
   bool Release();
   void SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
-  void AddLine(const Vec3& from, const Vec3 to );
+  void AddLine(const Vec3& from, const Vec3& to );
 	void Draw();
   void SetCamera(Camera* cam);
-  void EnableDebugDraw();
-
 private:
   void ReadShader(const char* shader_name, std::vector<char>& buffer);
 
