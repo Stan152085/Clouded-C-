@@ -18,6 +18,8 @@ public:
 
   Mat44 view() const;
   Mat44 perspective() const;
+  Mat44 hmd_pose_;
+
 private:
   Vec3 pos_ = Vec3(0.0f, 3.0f, -8.0f);
   Vec3 target_ = Vec3(0.0f, 0.0f, 0.0f);

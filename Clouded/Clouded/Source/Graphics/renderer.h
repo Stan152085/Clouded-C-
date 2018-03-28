@@ -1,9 +1,14 @@
 #pragma once
 #include "stdafx.h"
 #include <D3D11.h>
+#include <queue>
 
+class Input;
 class Camera;
-
+namespace vr
+{
+  class IVRSystem;
+}
 namespace resources
 {
   struct Vertex;
@@ -43,7 +48,7 @@ public:
 	D3D11Renderer();
 	~D3D11Renderer();
 
-	bool Intialize(HWND window_handle, const Vec2u& screen_size);
+	bool Intialize(HWND window_handle, const Vec2u& screen_size, vr::IVRSystem* vr_system);
 
   bool Release();
   void SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
@@ -53,12 +58,38 @@ public:
 	void Present();
   void SetCamera(Camera* cam);
 
+
   void ReleaseFromGPU(ModelHandle handle);
   ModelHandle PushToGPU(const resources::Model& model);
 
-  void DrawModel(ModelHandle model);
+  void AddToDrawQueue(ModelHandle handle);
   void SetRenderState(RenderModes mode);
 private:
+  enum struct RenderTargets
+  {
+    kLeftEye,
+    kRightEye,
+    kDebugCamera
+  };
+  ModelHandle DrawModel(ModelHandle model, RenderTargets render_target);
+  class RenderTexture
+  {
+  public:
+    RenderTexture();
+    bool Create(ID3D11Device*, uint32_t, uint32_t);
+    void Release();
+
+    ID3D11Texture2D* texture();
+    ID3D11RenderTargetView* render_target();
+    ID3D11ShaderResourceView* shader_resource();
+  private:
+    ID3D11Texture2D * texture_;
+    ID3D11RenderTargetView* render_target_;
+    ID3D11ShaderResourceView* shader_resource_;
+  };
+
+  void RenderDrawQueue(Input* input);
+
   void ReadShader(const char* shader_name, std::vector<char>& buffer);
 
 	IDXGISwapChain* swap_chain_;
@@ -93,6 +124,15 @@ private:
   };
   Camera* current_camera_;
   
+  /*vr stuff*/
+  RenderTexture* left_eye_;
+  RenderTexture* right_eye_;
+
   float clear_color_[4];
+  vr::IVRSystem* vr_system_;
+  std::queue<ModelHandle> draw_queue_;
 };
+
+
+
 

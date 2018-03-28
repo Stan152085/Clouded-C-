@@ -6,6 +6,26 @@
 #include "Core\Camera.h"
 #include <D3D11.h>
 #include "DebugRenderer.h"
+#include <OpenVr\openvr.h>
+#include "Input\Input.h"
+
+class VRCamera
+{
+public:
+  Mat44 inv_head_pose_;
+  Mat44 left_eye_projection_;
+  Mat44 left_eye_view_;
+
+  Mat44 right_eye_projection_;
+  Mat44 right_eye_view_;
+
+  Mat44 projection_left_;
+  Mat44 projection_right_;
+private:
+
+};
+
+VRCamera vr_cam;
 
 constexpr unsigned int max_line_count_ = 500;
 uint32_t current_line_count_ = 0;
@@ -30,8 +50,9 @@ D3D11Renderer::~D3D11Renderer()
 {
 }
 
-bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
+bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size, vr::IVRSystem* vr_system)
 {
+  vr_system_ = vr_system;
   //cam = Camera((float)screen_size.x, (float)screen_size.y, 90.0f);
 
   /*DX11 intialization*/
@@ -61,17 +82,17 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
   swap_chain_desc_.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
   result = D3D11CreateDeviceAndSwapChain(NULL,
-                                D3D_DRIVER_TYPE_HARDWARE,
-                                NULL,
-                                D3D11_CREATE_DEVICE_DEBUG,
-                                NULL,
-                                NULL,
-                                D3D11_SDK_VERSION,
-                                &swap_chain_desc_,
-                                &swap_chain_,
-                                &d3d11_device_,
-                                NULL,
-                                &d3d11_device_context_);
+    D3D_DRIVER_TYPE_HARDWARE,
+    NULL,
+    D3D11_CREATE_DEVICE_DEBUG,
+    NULL,
+    NULL,
+    D3D11_SDK_VERSION,
+    &swap_chain_desc_,
+    &swap_chain_,
+    &d3d11_device_,
+    NULL,
+    &d3d11_device_context_);
   if (FAILED(result))
   {
     printf("Failed to create swap chain \n");
@@ -99,7 +120,7 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
   d3d11_device_->CreateDepthStencilView(depth_stencil_buffer_, NULL, &depth_stencil_view_);
 
   d3d11_device_context_->OMSetRenderTargets(1, &render_target_view_, depth_stencil_view_);
-  
+
   /*set up shaders and vertex buffers to render a triangle*/
   std::vector<char> vs_buf;
   std::vector<char> ps_buf;
@@ -177,6 +198,16 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
   result = d3d11_device_->CreateRasterizerState(&wireframe_desc, &solid_);
 
   d3d11_device_context_->RSSetState(solid_);
+
+  if (vr_system_ != nullptr)
+  {
+    uint32_t eye_width;
+    uint32_t eye_height;
+    vr_system_->GetRecommendedRenderTargetSize(&eye_width, &eye_height);
+    left_eye_->Create(d3d11_device_, eye_width, eye_height);
+    right_eye_->Create(d3d11_device_, eye_width, eye_height);
+  }
+
   return true;
 }
 
@@ -224,13 +255,31 @@ void D3D11Renderer::AddLine(const Vec3& from, const Vec3& to)
 
 void D3D11Renderer::Clear()
 {
+  // clear left eye
+  if (vr_system_ != nullptr)
+  {
+    ID3D11RenderTargetView* render_target = left_eye_->render_target();
+    d3d11_device_context_->OMSetRenderTargets(1, &render_target, depth_stencil_view_);
+    d3d11_device_context_->ClearRenderTargetView(render_target, clear_color_);
+
+    // clear right eye
+    render_target = right_eye_->render_target();
+    d3d11_device_context_->OMSetRenderTargets(1, &render_target, depth_stencil_view_);
+    d3d11_device_context_->ClearRenderTargetView(render_target, clear_color_);
+  }
+
+  // clear debug window
+  d3d11_device_context_->OMSetRenderTargets(1, &render_target_view_, depth_stencil_view_);
   d3d11_device_context_->ClearRenderTargetView(render_target_view_, clear_color_);
+
   d3d11_device_context_->ClearDepthStencilView(depth_stencil_view_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
   d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 void D3D11Renderer::Present()
 {
+  RenderDrawQueue(nullptr);
+
   d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
   cb_per_obj.world = { 1,0,0,0,
                        0,1,0,0,
@@ -246,8 +295,17 @@ void D3D11Renderer::Present()
   d3d11_device_context_->Draw(current_line_count_ * 2, 0);
 
   swap_chain_->Present(0, 0);
-  
+
   current_line_count_ = 0;
+
+  if (vr_system_ != nullptr)
+  {
+    vr::Texture_t left = { left_eye_->texture(), vr::TextureType_DirectX, vr::ColorSpace_Auto };
+    vr::EVRCompositorError error1 = vr::VRCompositor()->Submit(vr::Eye_Left, &left);
+    vr::Texture_t right = { right_eye_->texture(), vr::TextureType_DirectX, vr::ColorSpace_Auto };
+    vr::VRCompositor()->Submit(vr::Eye_Right, &right);
+  }
+
 }
 
 void D3D11Renderer::SetCamera(Camera * cam)
@@ -297,11 +355,11 @@ ModelHandle D3D11Renderer::PushToGPU(const resources::Model& model)
 
   for (const resources::Mesh& mesh : model.meshes())
   {
-   memcpy(vertex_it, mesh.vertices().data(), mesh.vertices().size() * sizeof resources::Vertex);
-   memcpy(index_it, mesh.indices().data(), mesh.indices().size() * sizeof(unsigned short));
+    memcpy(vertex_it, mesh.vertices().data(), mesh.vertices().size() * sizeof resources::Vertex);
+    memcpy(index_it, mesh.indices().data(), mesh.indices().size() * sizeof(unsigned short));
 
-   vertex_it += mesh.vertices().size();
-   index_it += mesh.indices().size();
+    vertex_it += mesh.vertices().size();
+    index_it += mesh.indices().size();
   }
 
   D3D11_SUBRESOURCE_DATA vertex_data{};
@@ -318,14 +376,31 @@ ModelHandle D3D11Renderer::PushToGPU(const resources::Model& model)
   return std::make_shared<GPUModel>(vertex_buffer, index_buffer, num_idices, vert_offsets);
 }
 
-void D3D11Renderer::DrawModel(ModelHandle model)
+ModelHandle D3D11Renderer::DrawModel(ModelHandle model, RenderTargets render_target)
 {
   cb_per_obj.world = { 1,0,0,0,
     0,1,0,0,
     0,0,1,0,
     0,0,0,1 };
-  cb_per_obj.view = glm::transpose(current_camera_->view());
-  cb_per_obj.persp = glm::transpose(current_camera_->perspective());
+
+  switch (render_target)
+  {
+  case RenderTargets::kLeftEye:
+    cb_per_obj.view = vr_cam.left_eye_view_ * vr_cam.inv_head_pose_;//glm::transpose(current_camera_->view());
+    cb_per_obj.persp = vr_cam.left_eye_projection_;//glm::transpose(current_camera_->perspective());
+    break;
+  case RenderTargets::kRightEye:
+    cb_per_obj.view = vr_cam.right_eye_view_ * vr_cam.inv_head_pose_;//glm::transpose(current_camera_->view());
+    cb_per_obj.persp = vr_cam.right_eye_projection_;//glm::transpose(current_camera_->perspective());
+    break;
+  case RenderTargets::kDebugCamera:
+    cb_per_obj.view = glm::transpose(current_camera_->view());//glm::transpose(current_camera_->view());
+    cb_per_obj.persp = glm::transpose(current_camera_->perspective());//glm::transpose(current_camera_->perspective());
+    break;
+  default:
+    break;
+  }
+
 
   d3d11_device_context_->UpdateSubresource(cb_per_object_buffer_, 0, NULL, &cb_per_obj, 0, 0);
   d3d11_device_context_->VSSetConstantBuffers(0, 1, &cb_per_object_buffer_);
@@ -343,6 +418,12 @@ void D3D11Renderer::DrawModel(ModelHandle model)
     d3d11_device_context_->DrawIndexed((uint32_t)model->num_idices_[i], (uint32_t)cur_pos, (int32_t)model->vert_offsets_[i]);
     cur_pos += model->num_idices_[i];
   }
+  return model;
+}
+
+void D3D11Renderer::AddToDrawQueue(ModelHandle handle)
+{
+  draw_queue_.push(handle);
 }
 
 void D3D11Renderer::SetRenderState(RenderModes mode)
@@ -355,6 +436,74 @@ void D3D11Renderer::SetRenderState(RenderModes mode)
   case RenderModes::kWireframe:
     d3d11_device_context_->RSSetState(wireframe_);
     break;
+  }
+}
+
+void D3D11Renderer::RenderDrawQueue(Input* input)
+{
+  if (vr_system_ != nullptr)
+  {
+
+    // setup the vr camera
+    vr::HmdMatrix34_t pose = vr_system_->GetEyeToHeadTransform(vr::Eye_Left);
+    vr_cam.left_eye_view_ = { pose.m[0][0], pose.m[1][0], pose.m[2][0], 0.0f,
+                              pose.m[0][1], pose.m[1][1], pose.m[2][1], 0.0f,
+                              pose.m[0][2], pose.m[1][2], pose.m[2][2], 0.0f,
+                              pose.m[0][3], pose.m[1][3], pose.m[2][3], 1.0f };
+    vr_cam.left_eye_view_ = glm::inverse(vr_cam.left_eye_view_);
+
+    pose = vr_system_->GetEyeToHeadTransform(vr::Eye_Right);
+    vr_cam.right_eye_view_ = { pose.m[0][0], pose.m[1][0], pose.m[2][0], 0.0f,
+                               pose.m[0][1], pose.m[1][1], pose.m[2][1], 0.0f,
+                               pose.m[0][2], pose.m[1][2], pose.m[2][2], 0.0f,
+                               pose.m[0][3], pose.m[1][3], pose.m[2][3], 1.0f };
+    vr_cam.right_eye_view_ = glm::inverse(vr_cam.right_eye_view_);
+
+    vr::HmdMatrix44_t projection = vr_system_->GetProjectionMatrix(vr::Eye_Left, 1.0f, 10000.0f);
+    vr_cam.left_eye_projection_ = { projection.m[0][0], projection.m[1][0] , projection.m[2][0] ,projection.m[3][0] ,
+                                    projection.m[0][1], projection.m[1][1] , projection.m[2][1] ,projection.m[3][1] ,
+                                    projection.m[0][2], projection.m[1][2] , projection.m[2][2] ,projection.m[3][2] ,
+                                    projection.m[0][3], projection.m[1][3] , projection.m[2][3] ,projection.m[3][3] };
+
+    projection = vr_system_->GetProjectionMatrix(vr::Eye_Right, 1.0f, 10000.0f);
+
+    vr_cam.right_eye_projection_ = { projection.m[0][0], projection.m[1][0] , projection.m[2][0] ,projection.m[3][0] ,
+                                     projection.m[0][1], projection.m[1][1] , projection.m[2][1] ,projection.m[3][1] ,
+                                     projection.m[0][2], projection.m[1][2] , projection.m[2][2] ,projection.m[3][2] ,
+                                     projection.m[0][3], projection.m[1][3] , projection.m[2][3] ,projection.m[3][3] };
+
+    vr_cam.inv_head_pose_ = glm::inverse(input->Pose(Input::Controller::kHead));
+
+    ID3D11RenderTargetView* render_target = left_eye_->render_target();
+    d3d11_device_context_->OMSetRenderTargets(1, &render_target, depth_stencil_view_);
+
+    // draw everything for the left eye
+    // process the first element in the queue and immidiatly place it back at the end
+    for (size_t i = 0; i < draw_queue_.size(); ++i)
+    {
+      ModelHandle handle = draw_queue_.front();
+      draw_queue_.pop();
+      draw_queue_.push(DrawModel(handle, RenderTargets::kLeftEye));
+    }
+
+    render_target = right_eye_->render_target();
+    d3d11_device_context_->OMSetRenderTargets(1, &render_target, depth_stencil_view_);
+
+    // draw everything in the queue again for the right eye
+    for (size_t i = 0; i < draw_queue_.size(); ++i)
+    {
+      ModelHandle handle = draw_queue_.front();
+      draw_queue_.pop();
+      draw_queue_.push(DrawModel(handle, RenderTargets::kRightEye));
+    }
+  }
+
+  d3d11_device_context_->OMSetRenderTargets(1, &render_target_view_, depth_stencil_view_);
+
+  // draw the scene a third time with a free cam so we can debug along side the scene
+  for (; draw_queue_.size() > 0; draw_queue_.pop())
+  {
+    DrawModel(draw_queue_.front(), RenderTargets::kDebugCamera);
   }
 }
 
@@ -375,4 +524,86 @@ void D3D11Renderer::ReadShader(const char* shader_name, std::vector<char>& buffe
   {
     printf("unable to load shader %s", file_path.c_str());
   }
+}
+
+D3D11Renderer::RenderTexture::RenderTexture() :
+  texture_(nullptr),
+  render_target_(nullptr),
+  shader_resource_(nullptr)
+{
+}
+
+bool D3D11Renderer::RenderTexture::Create(ID3D11Device* d3d11_device, uint32_t width, uint32_t height)
+{
+  HRESULT result;
+
+  D3D11_TEXTURE2D_DESC texture_desc{};
+  texture_desc.Width = width;
+  texture_desc.Height = height;
+  texture_desc.MipLevels = 1;
+  texture_desc.ArraySize = 1;
+  texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  texture_desc.SampleDesc.Count = 1;
+  texture_desc.Usage = D3D11_USAGE_DEFAULT;
+  texture_desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+  result = d3d11_device->CreateTexture2D(&texture_desc, NULL, &texture_);
+  if (FAILED(result))
+  {
+    printf("failed to create texture");
+    return false;
+  }
+
+  D3D11_RENDER_TARGET_VIEW_DESC render_target_desc{};
+  render_target_desc.Format = texture_desc.Format;
+  render_target_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+  render_target_desc.Texture2D.MipSlice = 0;
+
+  result = d3d11_device->CreateRenderTargetView(texture_, &render_target_desc, &render_target_);
+  if (FAILED(result))
+  {
+    printf("failed to create render target");
+    return false;
+  }
+
+  D3D11_SHADER_RESOURCE_VIEW_DESC shader_resource_desc{};
+  shader_resource_desc.Format = texture_desc.Format;
+  shader_resource_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+  shader_resource_desc.Texture2D.MostDetailedMip = 0;
+  shader_resource_desc.Texture2D.MipLevels = 1;
+
+  result = d3d11_device->CreateShaderResourceView(texture_, &shader_resource_desc, &shader_resource_);
+  if (FAILED(result))
+  {
+    printf("failed to create shader resource");
+    return false;
+  }
+
+  return true;
+}
+
+void D3D11Renderer::RenderTexture::Release()
+{
+  texture_->Release();
+  render_target_->Release();
+  shader_resource_->Release();
+
+  texture_ = nullptr;
+  render_target_ = nullptr;
+  shader_resource_ = nullptr;
+}
+
+ID3D11Texture2D * D3D11Renderer::RenderTexture::texture()
+{
+  return texture_;
+}
+
+ID3D11RenderTargetView *  D3D11Renderer::RenderTexture::render_target()
+{
+  return render_target_;
+}
+
+ID3D11ShaderResourceView * D3D11Renderer::RenderTexture::shader_resource()
+{
+  return shader_resource_;
 }

@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "Input.h"
 #include "Math\math_defines.h"
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 struct VRControllerData
 {
   Vec3 pos;
@@ -20,6 +23,14 @@ struct InputData
 {
   VRControllerData controller_data[Input::kNumControlers];
 };
+
+Mat44 Input::Pose(Controller type)
+{
+  InputData& input_data = reinterpret_cast<InputData&>(*pImpl);
+  return glm::translate(input_data.controller_data[type].pos) *
+         glm::toMat4(input_data.controller_data[type].rot)*
+         Mat44(1.0f);
+}
 
 Vec3 Input::Position(Controller type)
 {
@@ -151,6 +162,8 @@ void Input::Poll()
       head_data.last_button_pressed = head_data.button_pressed;
       head_data.button_pressed = state.ulButtonPressed;
       head_data.button_touched= state.ulButtonTouched;
+
+
       switch (result)
       {
       case vr::TrackingResult_Uninitialized:

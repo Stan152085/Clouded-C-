@@ -29,7 +29,7 @@ int main()
 	sf::WindowHandle handle = window.getSystemHandle();
 	// game initialization
   D3D11Renderer renderer;
-  renderer.Intialize(handle, resolution);
+  renderer.Intialize(handle, resolution, vr_system);
   renderer.SetRenderState(RenderModes::kWireframe);
 
   DebugRenderer dbg_renderer;
@@ -95,7 +95,7 @@ int main()
       }
 
 		}
-    renderer.DrawModel(model_handle);
+    renderer.AddToDrawQueue(model_handle);
     DebugRenderer::DrawLine(Vec3(-2.0f,0.0f,0.0f), Vec3(2.0f, 0.0f, 0.0f));
     // grid.DebugDraw(renderer);
     renderer.Present();
