@@ -8,10 +8,18 @@ class D3D11Renderer;
 // the handle to the model on the gpu
 struct GPUModel;
 
+// tinygltf's model
+namespace tinygltf
+{
+  class Model;
+}
+
 namespace resources
 {
-  // the texture class
+  // our texture class
   class Texture;
+  // our model class
+  class Model;
 
   class AssetManager
   {
@@ -41,6 +49,9 @@ namespace resources
     // prevent copying
     AssetManager(const AssetManager& rhs);
     const AssetManager& operator=(const AssetManager& rhs);
+
+    // helper function to convert a tinygltf model into one of ours
+    void ConstructModel(const tinygltf::Model& source, Model& result, const std::string& model_name);
 
     using ModelMap = std::unordered_map<std::string, std::shared_ptr<GPUModel>>;
     using TextureMap = std::unordered_map<std::string, std::shared_ptr<resources::Texture>>;

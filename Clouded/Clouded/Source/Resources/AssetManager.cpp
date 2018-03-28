@@ -16,11 +16,6 @@
 #include "TinyGLTF/tiny_gltf.h"
 #include <unordered_map>
 
-using ModelMap = std::unordered_map<std::string, std::shared_ptr<resources::Model>>;
-ModelMap model_map;
-using TextureMap = std::unordered_map<std::string, std::shared_ptr<resources::Texture>>;
-TextureMap texture_map;
-
 namespace resources
 {
   // private load function, to wrap tinygltf
@@ -79,7 +74,7 @@ namespace resources
     }
   }
 
-  void ConstructModel(const tinygltf::Model& source, Model& result, const std::string& model_name)
+  void AssetManager::ConstructModel(const tinygltf::Model& source, Model& result, const std::string& model_name)
   {
     // convert and store all textures
     std::vector<std::shared_ptr<Texture>> textures;
@@ -429,24 +424,15 @@ namespace resources
     std::string file_name_axe = "../Assets/Samples/Hexagon/MS_Axe.glb";
     std::string err;
 
-    tinygltf::Model model_cube;
-    tinygltf::Model model_duck;
-    tinygltf::Model model_axe;
-
-    Load(file_name_cube, model_cube, err);
-    Load(file_name_duck, model_duck, err);
-    Load(file_name_axe, model_axe, err);
-
-    Model res_cube;
-    Model res_duck;
-    Model res_axe;
-    ConstructModel(model_cube, res_cube, file_name_cube);
-    ConstructModel(model_duck, res_duck, file_name_duck);
-    ConstructModel(model_axe, res_axe, file_name_axe);
-
+    // check initial load
     ModelHandle cube = manager.GetModel(file_name_cube, renderer, err);
     ModelHandle duck = manager.GetModel(file_name_duck, renderer, err);
     ModelHandle axe = manager.GetModel(file_name_axe, renderer, err);
+
+    // check if you only get a reference, not a new copy
+    ModelHandle cube2 = manager.GetModel(file_name_cube, renderer, err);
+    ModelHandle duck2 = manager.GetModel(file_name_duck, renderer, err);
+    ModelHandle axe2 = manager.GetModel(file_name_axe, renderer, err);
 
     int test = 0;
   }
