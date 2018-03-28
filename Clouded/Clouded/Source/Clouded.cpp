@@ -44,8 +44,8 @@ int main()
 
   std::string err;
   std::string file = "../Assets/Samples/Hexagon/MS_Axe.glb";
-  auto model = resources::GetModel(file, err);
-  ModelHandle model_handle = renderer.PushToGPU(*model);
+  resources::AssetManager asset_manager;
+  auto model = asset_manager.GetModel(file, renderer, err);
 
 	while (window.isOpen())
 	{
@@ -95,7 +95,7 @@ int main()
       }
 
 		}
-    renderer.AddToDrawQueue(model_handle);
+    renderer.AddToDrawQueue(model);
     DebugRenderer::DrawLine(Vec3(-2.0f,0.0f,0.0f), Vec3(2.0f, 0.0f, 0.0f));
     // grid.DebugDraw(renderer);
     renderer.Present();
