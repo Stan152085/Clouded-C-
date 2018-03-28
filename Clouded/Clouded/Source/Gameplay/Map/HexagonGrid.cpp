@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "HexagonGrid.h"
-#include "HexagonTile.h"
+#include "Tile\HexagonTile.h"
+#include "Tile\States\ITileState.h"
+#include "Tile\States\StateConstructor.h"
 
 #include "Graphics\renderer.h"
 #include "Math\math_defines.h"
@@ -8,9 +10,11 @@
 HexagonGrid::HexagonGrid(GridBounds bounds_, float hex_size)
   :
   tiles_(reinterpret_cast<HexagonTile*>(malloc(bounds_.GetMaxX()*bounds_.GetMaxY() * sizeof(HexagonTile)))),
+  buffered_data_(reinterpret_cast<BufferedTileData*>(malloc(bounds_.GetMaxX()*bounds_.GetMaxY() * sizeof(BufferedTileData)))),
   bounds_(bounds_),
   hex_size_(hex_size)
 {
+  StateConstructor::Initialize();
   size_t width = bounds_.GetMaxX();
   size_t height = bounds_.GetMaxY();
   int index = 0;
@@ -20,6 +24,7 @@ HexagonGrid::HexagonGrid(GridBounds bounds_, float hex_size)
     for (size_t x = 0; x < bounds_.GetMaxX(); ++x)
     {
       tiles_[index] = HexagonTile();
+      buffered_data_[index].delta_wetness = 0;
       ++index;
     }
   }
@@ -40,12 +45,15 @@ void HexagonGrid::DebugDraw(D3D11Renderer& gfx)
     for (size_t x = 0; x < bounds_.GetMaxX(); ++x)
     {
       Vec2 pos = Vec2((x + row_offset / 2.0f)*horizontal_distance, y*vertical_distance);
+      size_t index = y * bounds_.GetMaxX() + x;
       Vec2 points[6];
+      Vec2 wetness_points[6];
       for (int i = 0; i < 6; ++i)
       {
         float angle_deg = (60.0f * i) + 30.0f;
         float angle_rad = glm::pi<float>() / 180.0f * angle_deg;
         points[i] = (Vec2(pos.x + hex_size_ * cos(angle_rad), pos.y + hex_size_ * sin(angle_rad)));
+        wetness_points[i]=(Vec2(pos.x + hex_size_* tiles_[index].state->wetness() * cos(angle_rad), pos.y + hex_size_ * tiles_[index].state->wetness()* sin(angle_rad)));
       }
 
       gfx.AddLine(Vec3(points[0],0), Vec3(points[1],0));
@@ -54,6 +62,58 @@ void HexagonGrid::DebugDraw(D3D11Renderer& gfx)
       gfx.AddLine(Vec3(points[3],0), Vec3(points[4],0));
       gfx.AddLine(Vec3(points[4],0), Vec3(points[5],0));
       gfx.AddLine(Vec3(points[5],0), Vec3(points[0],0));
+      gfx.AddLine(Vec3(wetness_points[0], 0), Vec3(wetness_points[1], 0));
+      gfx.AddLine(Vec3(wetness_points[1], 0), Vec3(wetness_points[2], 0));
+      gfx.AddLine(Vec3(wetness_points[2], 0), Vec3(wetness_points[3], 0));
+      gfx.AddLine(Vec3(wetness_points[3], 0), Vec3(wetness_points[4], 0));
+      gfx.AddLine(Vec3(wetness_points[4], 0), Vec3(wetness_points[5], 0));
+      gfx.AddLine(Vec3(wetness_points[5], 0), Vec3(wetness_points[0], 0));
+    }
+  }
+}
+
+void HexagonGrid::Update()
+{
+  // Actual update
+}
+
+void HexagonGrid::WetnessUpdate()
+{
+  // Wetness pass
+  for (size_t y = 0; y < bounds_.GetMaxY(); ++y)
+  {
+    int row_offset = y & 1;
+    int x_offset[2][6] = { { 1,0,-1,-1,-1,0 },{ 1,1,0,-1,0,1 } };
+    int y_offset[2][6] = { { 0,-1,-1,0,1,1 },{ 0,-1,-1,0,1,1 } };
+    for (size_t x = 0; x < bounds_.GetMaxX(); ++x)
+    {
+      size_t index = y * bounds_.GetMaxX() + x;
+      float delta_wetness = 0.f;
+      for (int i = 0; i < 6; ++i)
+      {
+        size_t tile_x = x + x_offset[row_offset][i];
+        size_t tile_y = y + y_offset[row_offset][i];
+        if (bounds_.InBounds(tile_x,tile_y))
+        {
+          size_t target_index = (tile_y) * bounds_.GetMaxX() + (tile_x);
+          float delta = tiles_[index].state->CalculateWaterTransition(tiles_[target_index].state)/ 60.0f;
+          buffered_data_[target_index].delta_wetness -= delta;
+          delta_wetness += delta;
+        }
+      }
+      buffered_data_[index].delta_wetness += delta_wetness;
+    }
+  }
+  // Apply delta wetness
+  for (size_t y = 0; y < bounds_.GetMaxY(); ++y)
+  {
+    int row_offset = y & 1;
+    int x_offset[2][6] = { { 1,0,-1,-1,-1,0 },{ 1,1,0,-1,0,1 } };
+    int y_offset[2][6] = { { 0,-1,-1,0,1,1 },{ 0,-1,-1,0,1,1 } };
+    for (size_t x = 0; x < bounds_.GetMaxX(); ++x)
+    {
+      size_t index = y * bounds_.GetMaxX() + x;
+      tiles_[index].state->set_wetness(glm::clamp(tiles_[index].state->wetness() + buffered_data_[index].delta_wetness, 0.0f, 1.0f));
     }
   }
 }

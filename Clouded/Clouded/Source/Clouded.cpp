@@ -31,7 +31,7 @@ int main()
   renderer.Intialize(handle, resolution);
   Camera cam((float)resolution.x, (float)resolution.y, 60.0f);
   renderer.SetCamera(&cam);
-  GridBounds bounds = GridBounds(5,10);
+  GridBounds bounds = GridBounds(5,5);
   HexagonGrid grid = HexagonGrid(bounds, 01.0f);
   resources::Run();
 
@@ -80,8 +80,9 @@ int main()
         }
         renderer.SetClearColor(0, 0, 0, 0);
       }
-
 		}
+    grid.Update();
+    grid.WetnessUpdate();
     grid.DebugDraw(renderer);
     renderer.Draw();
 	}
