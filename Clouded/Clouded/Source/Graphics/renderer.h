@@ -12,12 +12,29 @@ namespace resources
 
 struct GPUModel
 {
-  ID3D11Buffer* const vert_buffer;
-  ID3D11Buffer* const idx_buffer;
-  const std::vector<size_t> offsets;
+  GPUModel(ID3D11Buffer* const vert_buffer, ID3D11Buffer* const idx_buffer, const std::vector<size_t> num_idices, const std::vector<size_t> vert_offsets) :
+    vert_buffer_(vert_buffer),
+    idx_buffer_(idx_buffer),
+    num_idices_(num_idices),
+    vert_offsets_(vert_offsets)
+  {
+
+  }
+
+  ID3D11Buffer* const vert_buffer_;
+  ID3D11Buffer* const idx_buffer_;
+  const std::vector<size_t> num_idices_; //number of indices per mesh
+  const std::vector<size_t> vert_offsets_; //offset of the first vertex for each mesh
 };
 
 using ModelHandle = std::shared_ptr<GPUModel>;
+
+enum struct RenderModes
+{
+  kSolid,
+  kWireframe
+};
+
 
 class D3D11Renderer
 {
@@ -31,14 +48,16 @@ public:
   bool Release();
   void SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
   void AddLine(const Vec3& from, const Vec3& to );
-	void Draw();
+
+  void Clear();
+	void Present();
   void SetCamera(Camera* cam);
 
   void ReleaseFromGPU(ModelHandle handle);
   ModelHandle PushToGPU(const resources::Model& model);
 
-  void DrawModel(std::shared_ptr<resources::Model> model);
-
+  void DrawModel(ModelHandle model);
+  void SetRenderState(RenderModes mode);
 private:
   void ReadShader(const char* shader_name, std::vector<char>& buffer);
 
@@ -64,6 +83,7 @@ private:
 
   /*render states*/
   ID3D11RasterizerState* wireframe_;
+  ID3D11RasterizerState* solid_;
 
   D3D11_INPUT_ELEMENT_DESC layout[4] = {
     { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },

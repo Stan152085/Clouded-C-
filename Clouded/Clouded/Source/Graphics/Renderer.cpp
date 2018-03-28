@@ -2,6 +2,7 @@
 #include "renderer.h"
 #include "fstream"
 #include "Resources\Model.h"
+#include "Resources\Mesh.h"
 #include "Core\Camera.h"
 #include <D3D11.h>
 #include "DebugRenderer.h"
@@ -121,35 +122,6 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
   d3d11_device_context_->VSSetShader(vs_, 0, 0);
   d3d11_device_context_->PSSetShader(ps_, 0, 0);
 
-  // create index and vertex buffer for a primitive or model
-  // D3D11_BUFFER_DESC idx_buffer_desc;
-  // ZeroMemory(&idx_buffer_desc, sizeof(D3D11_BUFFER_DESC));
-  // idx_buffer_desc.ByteWidth = sizeof(cube_indices);
-  // idx_buffer_desc.CPUAccessFlags = NULL;
-  // idx_buffer_desc.MiscFlags = NULL;
-  // idx_buffer_desc.StructureByteStride = NULL;
-  // idx_buffer_desc.Usage = D3D11_USAGE_DEFAULT;
-  // 
-  // D3D11_SUBRESOURCE_DATA idx_buffer_data;
-  // ZeroMemory(&idx_buffer_data, sizeof(D3D11_SUBRESOURCE_DATA));
-  // idx_buffer_data.pSysMem = cube_indices;
-  // d3d11_device_->CreateBuffer(&idx_buffer_desc, &idx_buffer_data, &index_buffer_);
-  // d3d11_device_context_->IASetIndexBuffer(index_buffer_, DXGI_FORMAT_R32_UINT, 0);
-  // 
-  // D3D11_BUFFER_DESC vs_buffer_desc;
-  // ZeroMemory(&vs_buffer_desc, sizeof(D3D11_BUFFER_DESC));
-  // vs_buffer_desc.ByteWidth = sizeof(cube_vertices);
-  // vs_buffer_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-  // vs_buffer_desc.CPUAccessFlags = NULL;
-  // vs_buffer_desc.MiscFlags = NULL;
-  // vs_buffer_desc.StructureByteStride = NULL;
-  // vs_buffer_desc.Usage = D3D11_USAGE_DEFAULT;
-  // 
-  // D3D11_SUBRESOURCE_DATA vs_buffer_data;
-  // ZeroMemory(&vs_buffer_data, sizeof(D3D11_SUBRESOURCE_DATA));
-  // vs_buffer_data.pSysMem = cube_vertices;
-  // d3d11_device_->CreateBuffer(&vs_buffer_desc, &vs_buffer_data, &vert_buffers_[0]);
-  
   /*create line buffer*/
   D3D11_BUFFER_DESC line_buffer_desc;
   ZeroMemory(&line_buffer_desc, sizeof(D3D11_BUFFER_DESC));
@@ -168,7 +140,7 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
   // create input layout and set primitive topology
   result = d3d11_device_->CreateInputLayout(layout, sizeof(layout) / sizeof(D3D11_INPUT_ELEMENT_DESC), vs_buf.data(), vs_buf.size(), &vert_layout_);
   d3d11_device_context_->IASetInputLayout(vert_layout_);
-  d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+  d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
   assert(vert_layout_ != nullptr);
 
@@ -198,7 +170,13 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size)
   wireframe_desc.FillMode = D3D11_FILL_WIREFRAME;
   wireframe_desc.CullMode = D3D11_CULL_NONE;
   result = d3d11_device_->CreateRasterizerState(&wireframe_desc, &wireframe_);
-  d3d11_device_context_->RSSetState(wireframe_);
+
+  wireframe_desc = {};
+  wireframe_desc.FillMode = D3D11_FILL_SOLID;
+  wireframe_desc.CullMode = D3D11_CULL_BACK;
+  result = d3d11_device_->CreateRasterizerState(&wireframe_desc, &solid_);
+
+  d3d11_device_context_->RSSetState(solid_);
   return true;
 }
 
@@ -219,6 +197,7 @@ bool D3D11Renderer::Release()
   vert_layout_->Release();
   cb_per_object_buffer_->Release();
   wireframe_->Release();
+  solid_->Release();
   return true;
 }
 
@@ -243,11 +222,16 @@ void D3D11Renderer::AddLine(const Vec3& from, const Vec3& to)
   ++current_line_count_;
 }
 
-void D3D11Renderer::Draw()
+void D3D11Renderer::Clear()
 {
   d3d11_device_context_->ClearRenderTargetView(render_target_view_, clear_color_);
   d3d11_device_context_->ClearDepthStencilView(depth_stencil_view_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+  d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
 
+void D3D11Renderer::Present()
+{
+  d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
   cb_per_obj.world = { 1,0,0,0,
                        0,1,0,0,
                        0,0,1,0,
@@ -258,10 +242,9 @@ void D3D11Renderer::Draw()
   d3d11_device_context_->UpdateSubresource(cb_per_object_buffer_, 0, NULL, &cb_per_obj, 0, 0);
   d3d11_device_context_->VSSetConstantBuffers(0, 1, &cb_per_object_buffer_);
 
-
-  // memcpy_s(buffer, sizeof(buffer), line_vertices.data(), line_vertices.size() * sizeof(resources::Vertex));
   d3d11_device_context_->UpdateSubresource(line_buffer_, 0, NULL, line_vertices, 0, 0);
   d3d11_device_context_->Draw(current_line_count_ * 2, 0);
+
   swap_chain_->Present(0, 0);
   
   current_line_count_ = 0;
@@ -274,45 +257,105 @@ void D3D11Renderer::SetCamera(Camera * cam)
 
 void D3D11Renderer::ReleaseFromGPU(ModelHandle handle)
 {
+  handle->idx_buffer_->Release();
+  handle->vert_buffer_->Release();
 }
 
 ModelHandle D3D11Renderer::PushToGPU(const resources::Model& model)
 {
-//  ID3D11Buffer* vertex_buffer;
-//  ID3D11Buffer* index_buffer;
-  std::vector<size_t> offsets (model.meshes().size());
-  size_t total_size = 0;
-  
+  ID3D11Buffer* vertex_buffer;
+  ID3D11Buffer* index_buffer;
+
+  std::vector<size_t> num_idices(model.meshes().size());
+  std::vector<size_t> vert_offsets(model.meshes().size());
+  size_t vertex_total = 0;
+  size_t indices_total = 0;
   for (size_t i = 0; i < model.meshes().size(); ++i)
   {
-    offsets[i] = total_size;
-    total_size += model.meshes()[i].vertices().size();
+    indices_total += model.meshes()[i].indices().size();
+    i > 0 ? num_idices[i] = indices_total - num_idices[i - 1] : num_idices[i] = indices_total;
+
+    i > 0 ? vert_offsets[i] = vertex_total - vert_offsets[i - 1] : vert_offsets[i] = vertex_total;
+    vertex_total += model.meshes()[i].vertices().size();
   }
 
   D3D11_BUFFER_DESC vertex_buffer_desc{};
-  vertex_buffer_desc.ByteWidth = (uint32_t)(total_size * sizeof(resources::Vertex));
+  vertex_buffer_desc.ByteWidth = (uint32_t)(vertex_total * sizeof(resources::Vertex));
   vertex_buffer_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
   vertex_buffer_desc.Usage = D3D11_USAGE_DEFAULT;
 
-  resources::Vertex* vertex_array = new resources::Vertex[total_size];
-  for (size_t i = 0; i < model.meshes().size(); ++i)
+  D3D11_BUFFER_DESC index_buffer_desc{};
+  index_buffer_desc.ByteWidth = (uint32_t)(indices_total * sizeof(unsigned short));
+  index_buffer_desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+  index_buffer_desc.Usage = D3D11_USAGE_DEFAULT;
+
+  resources::Vertex* vertex_array_base = new resources::Vertex[vertex_total];
+  unsigned short* index_array_base = new unsigned short[indices_total];
+
+  resources::Vertex* vertex_it = vertex_array_base;
+  unsigned short* index_it = index_array_base;
+
+  for (const resources::Mesh& mesh : model.meshes())
   {
-   // memcpy(vertex_array, mesh.vertices().data(), off);
-    
+   memcpy(vertex_it, mesh.vertices().data(), mesh.vertices().size() * sizeof resources::Vertex);
+   memcpy(index_it, mesh.indices().data(), mesh.indices().size() * sizeof(unsigned short));
+
+   vertex_it += mesh.vertices().size();
+   index_it += mesh.indices().size();
   }
 
-
   D3D11_SUBRESOURCE_DATA vertex_data{};
+  vertex_data.pSysMem = vertex_array_base;
+  d3d11_device_->CreateBuffer(&vertex_buffer_desc, &vertex_data, &vertex_buffer);
 
-  // d3d11_device_->CreateBuffer();
+  D3D11_SUBRESOURCE_DATA index_data{};
+  index_data.pSysMem = index_array_base;
+  d3d11_device_->CreateBuffer(&index_buffer_desc, &index_data, &index_buffer);
 
+  delete[] vertex_array_base;
+  delete[] index_array_base;
 
-
-  return ModelHandle{};
+  return std::make_shared<GPUModel>(vertex_buffer, index_buffer, num_idices, vert_offsets);
 }
 
-void D3D11Renderer::DrawModel(std::shared_ptr<resources::Model> model)
+void D3D11Renderer::DrawModel(ModelHandle model)
 {
+  cb_per_obj.world = { 1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1 };
+  cb_per_obj.view = glm::transpose(current_camera_->view());
+  cb_per_obj.persp = glm::transpose(current_camera_->perspective());
+
+  d3d11_device_context_->UpdateSubresource(cb_per_object_buffer_, 0, NULL, &cb_per_obj, 0, 0);
+  d3d11_device_context_->VSSetConstantBuffers(0, 1, &cb_per_object_buffer_);
+
+
+  d3d11_device_context_->IASetIndexBuffer(model->idx_buffer_, DXGI_FORMAT_R16_UINT, 0);
+
+  uint32_t stride = sizeof(resources::Vertex);
+  uint32_t offset = 0;
+  d3d11_device_context_->IASetVertexBuffers(0, 1, &model->vert_buffer_, &stride, &offset);
+
+  size_t cur_pos = 0;
+  for (size_t i = 0; i < model->vert_offsets_.size(); ++i)
+  {
+    d3d11_device_context_->DrawIndexed((uint32_t)model->num_idices_[i], (uint32_t)cur_pos, (int32_t)model->vert_offsets_[i]);
+    cur_pos += model->num_idices_[i];
+  }
+}
+
+void D3D11Renderer::SetRenderState(RenderModes mode)
+{
+  switch (mode)
+  {
+  case RenderModes::kSolid:
+    d3d11_device_context_->RSSetState(solid_);
+    break;
+  case RenderModes::kWireframe:
+    d3d11_device_context_->RSSetState(wireframe_);
+    break;
+  }
 }
 
 void D3D11Renderer::ReadShader(const char* shader_name, std::vector<char>& buffer)
