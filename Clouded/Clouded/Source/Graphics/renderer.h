@@ -1,9 +1,14 @@
 #pragma once
 #include "stdafx.h"
 #include <D3D11.h>
+#include <queue>
 
+class Input;
 class Camera;
-
+namespace vr
+{
+  class IVRSystem;
+}
 namespace resources
 {
   struct Vertex;
@@ -12,12 +17,29 @@ namespace resources
 
 struct GPUModel
 {
-  ID3D11Buffer* const vert_buffer;
-  ID3D11Buffer* const idx_buffer;
-  const std::vector<size_t> offsets;
+  GPUModel(ID3D11Buffer* const vert_buffer, ID3D11Buffer* const idx_buffer, const std::vector<size_t> num_idices, const std::vector<size_t> vert_offsets) :
+    vert_buffer_(vert_buffer),
+    idx_buffer_(idx_buffer),
+    num_idices_(num_idices),
+    vert_offsets_(vert_offsets)
+  {
+
+  }
+
+  ID3D11Buffer* const vert_buffer_;
+  ID3D11Buffer* const idx_buffer_;
+  const std::vector<size_t> num_idices_; //number of indices per mesh
+  const std::vector<size_t> vert_offsets_; //offset of the first vertex for each mesh
 };
 
 using ModelHandle = std::shared_ptr<GPUModel>;
+
+enum struct RenderModes
+{
+  kSolid,
+  kWireframe
+};
+
 
 class D3D11Renderer
 {
@@ -26,20 +48,48 @@ public:
 	D3D11Renderer();
 	~D3D11Renderer();
 
-	bool Intialize(HWND window_handle, const Vec2u& screen_size);
+	bool Intialize(HWND window_handle, const Vec2u& screen_size, vr::IVRSystem* vr_system);
 
   bool Release();
   void SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
   void AddLine(const Vec3& from, const Vec3& to );
-	void Draw();
+
+  void Clear();
+	void Present();
   void SetCamera(Camera* cam);
+
 
   void ReleaseFromGPU(ModelHandle handle);
   ModelHandle PushToGPU(const resources::Model& model);
 
-  void DrawModel(std::shared_ptr<resources::Model> model);
-
+  void AddToDrawQueue(ModelHandle handle);
+  void SetRenderState(RenderModes mode);
 private:
+  enum struct RenderTargets
+  {
+    kLeftEye,
+    kRightEye,
+    kDebugCamera
+  };
+  ModelHandle DrawModel(ModelHandle model, RenderTargets render_target);
+  class RenderTexture
+  {
+  public:
+    RenderTexture();
+    bool Create(ID3D11Device*, uint32_t, uint32_t);
+    void Release();
+
+    ID3D11Texture2D* texture();
+    ID3D11RenderTargetView* render_target();
+    ID3D11ShaderResourceView* shader_resource();
+  private:
+    ID3D11Texture2D * texture_;
+    ID3D11RenderTargetView* render_target_;
+    ID3D11ShaderResourceView* shader_resource_;
+  };
+
+  void RenderDrawQueue(Input* input);
+
   void ReadShader(const char* shader_name, std::vector<char>& buffer);
 
 	IDXGISwapChain* swap_chain_;
@@ -64,6 +114,7 @@ private:
 
   /*render states*/
   ID3D11RasterizerState* wireframe_;
+  ID3D11RasterizerState* solid_;
 
   D3D11_INPUT_ELEMENT_DESC layout[4] = {
     { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -73,6 +124,15 @@ private:
   };
   Camera* current_camera_;
   
+  /*vr stuff*/
+  RenderTexture* left_eye_;
+  RenderTexture* right_eye_;
+
   float clear_color_[4];
+  vr::IVRSystem* vr_system_;
+  std::queue<ModelHandle> draw_queue_;
 };
+
+
+
 

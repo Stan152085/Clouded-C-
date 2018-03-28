@@ -29,19 +29,27 @@ int main()
 	sf::WindowHandle handle = window.getSystemHandle();
 	// game initialization
   D3D11Renderer renderer;
-  renderer.Intialize(handle, resolution);
-  
+  renderer.Intialize(handle, resolution, vr_system);
+  renderer.SetRenderState(RenderModes::kWireframe);
+
   DebugRenderer dbg_renderer;
   dbg_renderer.set_renderer(&renderer);
 
   Camera cam((float)resolution.x, (float)resolution.y, 60.0f);
+  cam.set_position(Vec3(0, 2, 5));
   renderer.SetCamera(&cam);
   GridBounds bounds = GridBounds(5,5);
   // HexagonGrid grid = HexagonGrid(bounds, 01.0f);
   resources::Run(renderer);
 
+  std::string err;
+  std::string file = "../Assets/Samples/Hexagon/MS_Axe.glb";
+  auto model = resources::GetModel(file, err);
+  ModelHandle model_handle = renderer.PushToGPU(*model);
+
 	while (window.isOpen())
 	{
+    renderer.Clear();
 		// put main gameloop here
 		sf::Event event;
     input.Poll();
@@ -87,9 +95,10 @@ int main()
       }
 
 		}
+    renderer.AddToDrawQueue(model_handle);
     DebugRenderer::DrawLine(Vec3(-2.0f,0.0f,0.0f), Vec3(2.0f, 0.0f, 0.0f));
     // grid.DebugDraw(renderer);
-    renderer.Draw();
+    renderer.Present();
 	}
     return 0;
 }
