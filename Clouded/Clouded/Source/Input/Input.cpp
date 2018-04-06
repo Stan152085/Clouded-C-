@@ -139,6 +139,8 @@ void Input::Poll()
     vr::ETrackingResult result;
     // Get what type of device it is and work with its data
     vr::ETrackedDeviceClass device_class = vr::VRSystem()->GetTrackedDeviceClass( device_id );
+    //vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
+    //vr::VRCompositor()->WaitGetPoses(poses, vr::k_unMaxTrackedDeviceCount, NULL, 0);
     switch (device_class)
     {
     case vr::TrackedDeviceClass_Invalid:

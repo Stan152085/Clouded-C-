@@ -13,23 +13,29 @@
 #include "Math/Bounds.h"
 #include "Gameplay/Map/HexagonGrid.h"
 #include "Graphics\DebugRenderer.h"
+#include "Core/Window.h"
 
 int main()
 {
-  Vec2u resolution(700, 500);
-	sf::Window window;
-	sf::VideoMode mode(resolution.x, resolution.y);
-  
-  vr::EVRInitError init_error;
+   vr::EVRInitError init_error;
   vr::EVRApplicationType type = vr::EVRApplicationType::VRApplication_Scene;
   vr::IVRSystem* vr_system = vr::VR_Init(&init_error, type);
   Input input(vr_system);
+  Vec2u resolution(1280, 720);
+  Window window;
+  window.Create();
 
-	window.create(mode, "Clouded");
-	sf::WindowHandle handle = window.getSystemHandle();
+
+
+	// sf::Window window;
+	// sf::VideoMode mode(resolution.x, resolution.y);
+  // 
+  // 
+	// window.create(mode, "Clouded");
+	// sf::WindowHandle handle = window.getSystemHandle();
 	// game initialization
   D3D11Renderer renderer;
-  renderer.Intialize(handle, resolution, vr_system);
+  renderer.Intialize((HWND)window.window_handle(), resolution, vr_system);
   renderer.SetRenderState(RenderModes::kWireframe);
 
   DebugRenderer dbg_renderer;
@@ -47,58 +53,23 @@ int main()
   auto model = resources::GetModel(file, err);
   ModelHandle model_handle = renderer.PushToGPU(*model);
 
-	while (window.isOpen())
+	while (window.is_open())
 	{
     renderer.Clear();
 		// put main gameloop here
-		sf::Event event;
+		// sf::Event event;
+    window.ProcessMessages();
     input.Poll();
-    if (input.IsButtonReleased(Input::kLeftHand, vr::EVRButtonId::k_EButton_SteamVR_Touchpad))
-    {
-      window.close();
-    }
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::EventType::Closed)
-			{
-				window.close();
-				break;
-			}
-      else if (event.type == sf::Event::EventType::KeyPressed)
-      {
-        switch (event.key.code)
-        {
-          case sf::Keyboard::Up:
-          {
-            cam.Move(Vec3(0,-1,0), 0.1f);
-            break;
-          }
-          case sf::Keyboard::Left:
-          {
-            cam.Move(Vec3(1, 0, 0), 0.1f);
-            break;
-          }
-          case sf::Keyboard::Right:
-          {
-            cam.Move(Vec3(-1, 0, 0), 0.1f);
-            break;
-          }
-          case sf::Keyboard::Down:
-          {
-            cam.Move(Vec3(0, 1, 0), 0.1f);
-            break;
-          }
-        default:
-          break;
-        }
-        renderer.SetClearColor(0, 0, 0, 0);
-      }
+    //if (input.IsButtonReleased(Input::kLeftHand, vr::EVRButtonId::k_EButton_SteamVR_Touchpad))
+    //{
+    //  window.Close();
+    //}
 
-		}
+    renderer.SetClearColor(0, 0, 0, 0);
     renderer.AddToDrawQueue(model_handle);
-    DebugRenderer::DrawLine(Vec3(-2.0f,0.0f,0.0f), Vec3(2.0f, 0.0f, 0.0f));
+    DebugRenderer::DrawLine(Vec3(-2.0f,0.0f,0.0f), Vec3(2.0f, 0.0f, 0.0f), Vec4u8(255,0,0,255));
     // grid.DebugDraw(renderer);
-    renderer.Present();
+    renderer.Present(&input);
 	}
     return 0;
 }
