@@ -66,7 +66,7 @@ int main()
     //}
 
     renderer.SetClearColor(0, 0, 0, 0);
-    renderer.AddToDrawQueue(model_handle);
+    renderer.AddToDrawQueue(model);
     DebugRenderer::DrawLine(Vec3(-2.0f,0.0f,0.0f), Vec3(2.0f, 0.0f, 0.0f), Vec4u8(255,0,0,255));
     // grid.DebugDraw(renderer);
     renderer.Present(&input);
