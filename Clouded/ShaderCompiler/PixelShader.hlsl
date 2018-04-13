@@ -48,7 +48,7 @@ struct  PS_INPUT
  {
   float4 positionWS : TEXCOORD1; // vertex position in world space
   float3 normal : TEXCOORD2;     // normal position in world space
-  float2 uv : TEXCOORD0;
+  // float2 uv : TEXCOORD0;
  };
 
 float4 main(PS_INPUT input) : SV_TARGET
