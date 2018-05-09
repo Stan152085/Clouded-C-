@@ -57,12 +57,12 @@ bool Window::Create()
   wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
   wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
   wcex.lpszMenuName = 0;
-  wcex.lpszClassName = (LPCWSTR)"test";
+  wcex.lpszClassName = (LPCWSTR)L"test";
   wcex.hIconSm = NULL;
 
   RegisterClassExW(&wcex);
 
-  window_handle_ = CreateWindowW((LPCWSTR)"test", (LPCWSTR)"Clouded", WS_OVERLAPPEDWINDOW,
+  window_handle_ = CreateWindowW((LPCWSTR)L"test", (LPCWSTR)L"Clouded", WS_OVERLAPPEDWINDOW,
     CW_USEDEFAULT, 0, 1280, 720, nullptr, nullptr, nullptr, nullptr);
 
   if (!window_handle_)

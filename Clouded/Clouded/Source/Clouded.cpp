@@ -36,7 +36,7 @@ int main()
 	// game initialization
   D3D11Renderer renderer;
   renderer.Intialize((HWND)window.window_handle(), resolution, vr_system);
-  renderer.SetRenderState(RenderModes::kWireframe);
+  renderer.SetRenderState(RenderModes::kSolid);
 
   DebugRenderer dbg_renderer;
   dbg_renderer.set_renderer(&renderer);
