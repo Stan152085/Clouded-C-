@@ -7,7 +7,7 @@ class DebugRenderer
 {
 public:
   DebugRenderer() = default;
-  static void DrawLine(const Vec3& from, const Vec3& to);
+  static void DrawLine(const Vec3& from, const Vec3& to, const Vec4u8& color);
   void set_renderer(D3D11Renderer* const renderer);
 
 private:

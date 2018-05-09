@@ -4,10 +4,29 @@
 #include "Resources\Model.h"
 #include "Resources\Mesh.h"
 #include "Core\Camera.h"
-#include <D3D11.h>
 #include "DebugRenderer.h"
-#include <OpenVr\openvr.h>
 #include "Input\Input.h"
+
+
+Mat44 VrMat34ToMat44(const vr::HmdMatrix34_t &matPose)
+{
+  Mat44 matrixObj(
+    matPose.m[0][0], matPose.m[1][0], matPose.m[2][0], 0.0,
+    matPose.m[0][1], matPose.m[1][1], matPose.m[2][1], 0.0,
+    matPose.m[0][2], matPose.m[1][2], matPose.m[2][2], 0.0,
+    matPose.m[0][3], matPose.m[1][3], matPose.m[2][3], 1.0f
+  );
+  return matrixObj;
+}
+
+Mat44 VrMat44ToMat44(const vr::HmdMatrix44_t &matPose)
+{
+  Mat44 result{ matPose.m[0][0], matPose.m[1][0], matPose.m[2][0], matPose.m[3][0],
+    matPose.m[0][1], matPose.m[1][1], matPose.m[2][1], matPose.m[3][1],
+    matPose.m[0][2], matPose.m[1][2], matPose.m[2][2], matPose.m[3][2],
+    matPose.m[0][3], matPose.m[1][3], matPose.m[2][3], matPose.m[3][3] };
+  return result;
+}
 
 class VRCamera
 {
@@ -19,18 +38,24 @@ public:
   Mat44 right_eye_projection_;
   Mat44 right_eye_view_;
 
-  Mat44 projection_left_;
-  Mat44 projection_right_;
+  Mat44 view_left_;
+  Mat44 view_right_;
+
 private:
 
 };
 
 VRCamera vr_cam;
 
+struct DebugVertex
+{
+  Vec3 position;
+  Vec4u8 color;
+};
+
 constexpr unsigned int max_line_count_ = 500;
 uint32_t current_line_count_ = 0;
-
-resources::Vertex line_vertices[max_line_count_ * 2];
+DebugVertex line_vertices[max_line_count_ * 2];
 
 struct constant_buffer
 {
@@ -53,8 +78,7 @@ D3D11Renderer::~D3D11Renderer()
 bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size, vr::IVRSystem* vr_system)
 {
   vr_system_ = vr_system;
-  //cam = Camera((float)screen_size.x, (float)screen_size.y, 90.0f);
-
+ 
   /*DX11 intialization*/
   HRESULT result;
   //buffer description
@@ -100,11 +124,12 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size, vr::
 
   ID3D11Texture2D* back_buffer;
   swap_chain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back_buffer);
-  d3d11_device_->CreateRenderTargetView(back_buffer, NULL, &render_target_view_);
+  d3d11_device_->CreateRenderTargetView(back_buffer, NULL, &debug_render_target_view_);
   back_buffer->Release();
+  D3D11_TEXTURE2D_DESC depth_stencil_desc{};
 
-  D3D11_TEXTURE2D_DESC depth_stencil_desc;
-  // ZeroMemory(&depth_stencil_desc, sizeof(D3D11_TEXTURE2D_DESC));
+  // desc for the debug depth stencil
+  depth_stencil_desc = {};
   depth_stencil_desc.Width = screen_size.x;
   depth_stencil_desc.Height = screen_size.y;
   depth_stencil_desc.MipLevels = 1;
@@ -116,16 +141,15 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size, vr::
   depth_stencil_desc.Usage = D3D11_USAGE_DEFAULT;
   depth_stencil_desc.CPUAccessFlags = 0;
   depth_stencil_desc.MiscFlags = 0;
-  d3d11_device_->CreateTexture2D(&depth_stencil_desc, NULL, &depth_stencil_buffer_);
-  d3d11_device_->CreateDepthStencilView(depth_stencil_buffer_, NULL, &depth_stencil_view_);
+  d3d11_device_->CreateTexture2D(&depth_stencil_desc, NULL, &debug_depth_stencil_buffer_);
+  d3d11_device_->CreateDepthStencilView(debug_depth_stencil_buffer_, NULL, &debug_depth_stencil_view_);
 
-  d3d11_device_context_->OMSetRenderTargets(1, &render_target_view_, depth_stencil_view_);
 
   /*set up shaders and vertex buffers to render a triangle*/
-  std::vector<char> vs_buf;
-  std::vector<char> ps_buf;
+  std::string vs_buf;
+  std::string ps_buf;
   ReadShader("VertexShader", vs_buf);
-  result = d3d11_device_->CreateVertexShader(vs_buf.data(), vs_buf.size(), NULL, &vs_);
+  result = d3d11_device_->CreateVertexShader(vs_buf.data(), vs_buf.length(), NULL, &vs_);
 
   if (FAILED(result))
   {
@@ -140,44 +164,57 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size, vr::
     printf("Failed to create pixel shader \n");
   }
 
-  d3d11_device_context_->VSSetShader(vs_, 0, 0);
-  d3d11_device_context_->PSSetShader(ps_, 0, 0);
+  // create input layout and set primitive topology
+  result = d3d11_device_->CreateInputLayout(layout, sizeof(layout) / sizeof(D3D11_INPUT_ELEMENT_DESC), vs_buf.data(), vs_buf.size(), &vert_layout_);
+
+  // setup the debug shaders
+  ReadShader("debug_vertex_shader", vs_buf);
+  result = d3d11_device_->CreateVertexShader(vs_buf.data(), vs_buf.length(), NULL, &vs_debug_);
+
+  if (FAILED(result))
+  {
+    printf("Failed to create vertex shader \n");
+  }
+
+  ReadShader("debug_pixel_shader", ps_buf);
+  result = d3d11_device_->CreatePixelShader(ps_buf.data(), ps_buf.size(), NULL, &ps_debug_);
+
+  if (FAILED(result))
+  {
+    printf("Failed to create pixel shader \n");
+  }
+
+  result = d3d11_device_->CreateInputLayout(debug_layout,
+                                            sizeof(debug_layout) / sizeof(D3D11_INPUT_ELEMENT_DESC),
+                                            vs_buf.data()
+                                            , vs_buf.size(),
+                                            &vert_layout_debug_);
 
   /*create line buffer*/
   D3D11_BUFFER_DESC line_buffer_desc;
   ZeroMemory(&line_buffer_desc, sizeof(D3D11_BUFFER_DESC));
-  line_buffer_desc.ByteWidth = max_line_count_ * 2 * sizeof(resources::Vertex);
+  line_buffer_desc.ByteWidth = max_line_count_ * 2 * sizeof(DebugVertex);
   line_buffer_desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
   line_buffer_desc.CPUAccessFlags = NULL;
   line_buffer_desc.MiscFlags = NULL;
   line_buffer_desc.StructureByteStride = NULL;
   line_buffer_desc.Usage = D3D11_USAGE_DEFAULT;
-
   result = d3d11_device_->CreateBuffer(&line_buffer_desc, NULL, &line_buffer_);
 
-  uint32_t stride = sizeof(resources::Vertex);
-  uint32_t offset = 0;
-  d3d11_device_context_->IASetVertexBuffers(0, 1, &line_buffer_, &stride, &offset);
-  // create input layout and set primitive topology
-  result = d3d11_device_->CreateInputLayout(layout, sizeof(layout) / sizeof(D3D11_INPUT_ELEMENT_DESC), vs_buf.data(), vs_buf.size(), &vert_layout_);
-  d3d11_device_context_->IASetInputLayout(vert_layout_);
-  d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
   assert(vert_layout_ != nullptr);
 
-  D3D11_VIEWPORT viewport;
-  ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-  viewport.TopLeftX = 0;
-  viewport.TopLeftY = 0;
-  viewport.MinDepth = 0.0f;
-  viewport.MaxDepth = 1.0f;
-  viewport.Width = (float)screen_size.x;
-  viewport.Height = (float)screen_size.y;
-  d3d11_device_context_->RSSetViewports(1, &viewport);
+  // create the viewport for rendering the debug window
+  debug_viewport_ = {};
+  debug_viewport_.TopLeftX = 0;
+  debug_viewport_.TopLeftY = 0;
+  debug_viewport_.MinDepth = 0.0f;
+  debug_viewport_.MaxDepth = 1.0f;
+  debug_viewport_.Width = (float)screen_size.x;
+  debug_viewport_.Height = (float)screen_size.y;
 
   // create constant buffer per object
-  D3D11_BUFFER_DESC cb_per_obj_desc;
-  ZeroMemory(&cb_per_obj_desc, sizeof(D3D11_BUFFER_DESC));
+  D3D11_BUFFER_DESC cb_per_obj_desc {};
   cb_per_obj_desc.ByteWidth = sizeof(constant_buffer);
   cb_per_obj_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
   cb_per_obj_desc.CPUAccessFlags = NULL;
@@ -186,28 +223,58 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size, vr::
 
   result = d3d11_device_->CreateBuffer(&cb_per_obj_desc, NULL, &cb_per_object_buffer_);
 
-  D3D11_RASTERIZER_DESC wireframe_desc;
-  ZeroMemory(&wireframe_desc, sizeof(D3D11_RASTERIZER_DESC));
+  D3D11_RASTERIZER_DESC wireframe_desc{};
   wireframe_desc.FillMode = D3D11_FILL_WIREFRAME;
   wireframe_desc.CullMode = D3D11_CULL_NONE;
   result = d3d11_device_->CreateRasterizerState(&wireframe_desc, &wireframe_);
 
-  wireframe_desc = {};
-  wireframe_desc.FillMode = D3D11_FILL_SOLID;
-  wireframe_desc.CullMode = D3D11_CULL_BACK;
-  result = d3d11_device_->CreateRasterizerState(&wireframe_desc, &solid_);
-
+  D3D11_RASTERIZER_DESC solid_desc {};
+  solid_desc.FillMode = D3D11_FILL_SOLID;
+  solid_desc.CullMode = D3D11_CULL_BACK;
+  result = d3d11_device_->CreateRasterizerState(&solid_desc, &solid_);
   d3d11_device_context_->RSSetState(solid_);
 
   if (vr_system_ != nullptr)
   {
+    vr::EVRInitError err;
+    render_models = (vr::IVRRenderModels*)vr::VR_GetGenericInterface(vr::IVRRenderModels_Version, &err);
+    if (!render_models)
+    {
+      printf("unable to get render models");
+    }
     uint32_t eye_width;
     uint32_t eye_height;
     vr_system_->GetRecommendedRenderTargetSize(&eye_width, &eye_height);
+    left_eye_ = new RenderTexture();
+    right_eye_ = new RenderTexture();
+
     left_eye_->Create(d3d11_device_, eye_width, eye_height);
     right_eye_->Create(d3d11_device_, eye_width, eye_height);
-  }
 
+    D3D11_TEXTURE2D_DESC depth_stencil_desc{};
+    depth_stencil_desc.Width = eye_width;
+    depth_stencil_desc.Height = eye_height;
+    depth_stencil_desc.MipLevels = 1;
+    depth_stencil_desc.ArraySize = 1;
+    depth_stencil_desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depth_stencil_desc.SampleDesc.Count = 1;
+    depth_stencil_desc.SampleDesc.Quality = 0;
+    depth_stencil_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    depth_stencil_desc.Usage = D3D11_USAGE_DEFAULT;
+    depth_stencil_desc.CPUAccessFlags = 0;
+    depth_stencil_desc.MiscFlags = 0;
+    d3d11_device_->CreateTexture2D(&depth_stencil_desc, NULL, &vr_depth_stencil_buffer_);
+    d3d11_device_->CreateDepthStencilView(vr_depth_stencil_buffer_, NULL, &vr_depth_stencil_view_);
+
+    // create the viewport for rendering vr
+    vr_viewport_ = {};
+    vr_viewport_.TopLeftX = 0;
+    vr_viewport_.TopLeftY = 0;
+    vr_viewport_.MinDepth = 0.0f;
+    vr_viewport_.MaxDepth = 1.0f;
+    vr_viewport_.Width = (float)eye_width;
+    vr_viewport_.Height = (float)eye_height;
+  }
   return true;
 }
 
@@ -215,16 +282,23 @@ bool D3D11Renderer::Release()
 {
   swap_chain_->Release();
   d3d11_device_->Release();
+
   d3d11_device_context_->Release();
-  render_target_view_->Release();
+  vr_depth_stencil_buffer_->Release();
+  vr_depth_stencil_view_->Release();
+  left_eye_->Release();
+  right_eye_->Release();
+
+  debug_render_target_view_->Release();
+  debug_depth_stencil_buffer_->Release();
+  debug_depth_stencil_view_->Release();
+  ps_debug_->Release();
+  vs_debug_->Release();
+  vert_layout_debug_->Release();
+  
   line_buffer_->Release();
-  // index_buffer_->Release();
-  depth_stencil_buffer_->Release();
-  depth_stencil_view_->Release();
   vs_->Release();
   ps_->Release();
-  // vs_buffer_->Release();
-  // ps_buffer_->Release();
   vert_layout_->Release();
   cb_per_object_buffer_->Release();
   wireframe_->Release();
@@ -241,71 +315,50 @@ void D3D11Renderer::SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
   clear_color_[3] = { mult * a };
 }
 
-void D3D11Renderer::AddLine(const Vec3& from, const Vec3& to)
+void D3D11Renderer::AddLine(const Vec3& from, const Vec3& to, const Vec4u8& color)
 {
   if (current_line_count_ >= max_line_count_)
   {
     printf("exeeding the maxim number of debug lines. some lines will not be drawn");
     return;
   }
-  line_vertices[current_line_count_ * 2] = { from, Vec3(), Vec4(), Vec2() };
-  line_vertices[current_line_count_ * 2 + 1] = { to, Vec3(), Vec4(), Vec2() };
+  line_vertices[current_line_count_ * 2] = { from, color };
+  line_vertices[current_line_count_ * 2 + 1] = { to, color };
   ++current_line_count_;
 }
 
 void D3D11Renderer::Clear()
 {
-  // clear left eye
-  if (vr_system_ != nullptr)
-  {
-    ID3D11RenderTargetView* render_target = left_eye_->render_target();
-    d3d11_device_context_->OMSetRenderTargets(1, &render_target, depth_stencil_view_);
-    d3d11_device_context_->ClearRenderTargetView(render_target, clear_color_);
-
-    // clear right eye
-    render_target = right_eye_->render_target();
-    d3d11_device_context_->OMSetRenderTargets(1, &render_target, depth_stencil_view_);
-    d3d11_device_context_->ClearRenderTargetView(render_target, clear_color_);
-  }
-
-  // clear debug window
-  d3d11_device_context_->OMSetRenderTargets(1, &render_target_view_, depth_stencil_view_);
-  d3d11_device_context_->ClearRenderTargetView(render_target_view_, clear_color_);
-
-  d3d11_device_context_->ClearDepthStencilView(depth_stencil_view_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-  d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-void D3D11Renderer::Present()
+void D3D11Renderer::Present(Input* input)
 {
-  RenderDrawQueue(nullptr);
+  if (vr_system_)
+  {
+    UpdatateHmdPose();
+  }
 
-  d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-  cb_per_obj.world = { 1,0,0,0,
-                       0,1,0,0,
-                       0,0,1,0,
-                       0,0,0,1 };
-  cb_per_obj.view = glm::transpose(current_camera_->view());
-  cb_per_obj.persp = glm::transpose(current_camera_->perspective());
-
-  d3d11_device_context_->UpdateSubresource(cb_per_object_buffer_, 0, NULL, &cb_per_obj, 0, 0);
-  d3d11_device_context_->VSSetConstantBuffers(0, 1, &cb_per_object_buffer_);
-
-  d3d11_device_context_->UpdateSubresource(line_buffer_, 0, NULL, line_vertices, 0, 0);
-  d3d11_device_context_->Draw(current_line_count_ * 2, 0);
-
+  d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+  RenderDrawQueue(input);
+   
   swap_chain_->Present(0, 0);
-
   current_line_count_ = 0;
 
   if (vr_system_ != nullptr)
   {
+    if (!vr::VRCompositor())
+    {
+      printf("no compositor");
+    }
     vr::Texture_t left = { left_eye_->texture(), vr::TextureType_DirectX, vr::ColorSpace_Auto };
     vr::EVRCompositorError error1 = vr::VRCompositor()->Submit(vr::Eye_Left, &left);
     vr::Texture_t right = { right_eye_->texture(), vr::TextureType_DirectX, vr::ColorSpace_Auto };
     vr::VRCompositor()->Submit(vr::Eye_Right, &right);
+    if (error1)
+    {
+      printf("error is: %d \n", error1);
+    }
   }
-
 }
 
 void D3D11Renderer::SetCamera(Camera * cam)
@@ -383,34 +436,14 @@ ModelHandle D3D11Renderer::DrawModel(ModelHandle model, RenderTargets render_tar
     0,0,1,0,
     0,0,0,1 };
 
-  switch (render_target)
-  {
-  case RenderTargets::kLeftEye:
-    cb_per_obj.view = vr_cam.left_eye_view_ * vr_cam.inv_head_pose_;//glm::transpose(current_camera_->view());
-    cb_per_obj.persp = vr_cam.left_eye_projection_;//glm::transpose(current_camera_->perspective());
-    break;
-  case RenderTargets::kRightEye:
-    cb_per_obj.view = vr_cam.right_eye_view_ * vr_cam.inv_head_pose_;//glm::transpose(current_camera_->view());
-    cb_per_obj.persp = vr_cam.right_eye_projection_;//glm::transpose(current_camera_->perspective());
-    break;
-  case RenderTargets::kDebugCamera:
-    cb_per_obj.view = glm::transpose(current_camera_->view());//glm::transpose(current_camera_->view());
-    cb_per_obj.persp = glm::transpose(current_camera_->perspective());//glm::transpose(current_camera_->perspective());
-    break;
-  default:
-    break;
-  }
-
-
+  GetViewProjectionMatrix(render_target, cb_per_obj.view, cb_per_obj.persp);
   d3d11_device_context_->UpdateSubresource(cb_per_object_buffer_, 0, NULL, &cb_per_obj, 0, 0);
   d3d11_device_context_->VSSetConstantBuffers(0, 1, &cb_per_object_buffer_);
-
-
-  d3d11_device_context_->IASetIndexBuffer(model->idx_buffer_, DXGI_FORMAT_R16_UINT, 0);
 
   uint32_t stride = sizeof(resources::Vertex);
   uint32_t offset = 0;
   d3d11_device_context_->IASetVertexBuffers(0, 1, &model->vert_buffer_, &stride, &offset);
+  d3d11_device_context_->IASetIndexBuffer(model->idx_buffer_, DXGI_FORMAT_R16_UINT, 0);
 
   size_t cur_pos = 0;
   for (size_t i = 0; i < model->vert_offsets_.size(); ++i)
@@ -419,6 +452,44 @@ ModelHandle D3D11Renderer::DrawModel(ModelHandle model, RenderTargets render_tar
     cur_pos += model->num_idices_[i];
   }
   return model;
+}
+
+void D3D11Renderer::DrawDebug(RenderTargets render_target)
+{
+  d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+  cb_per_obj.world = { 1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1 };
+  GetViewProjectionMatrix(render_target, cb_per_obj.view, cb_per_obj.persp);
+
+  d3d11_device_context_->UpdateSubresource(cb_per_object_buffer_, 0, NULL, &cb_per_obj, 0, 0);
+  d3d11_device_context_->VSSetConstantBuffers(0, 1, &cb_per_object_buffer_);
+
+  d3d11_device_context_->UpdateSubresource(line_buffer_, 0, NULL, line_vertices, 0, 0);
+  uint32_t stride = sizeof(DebugVertex);
+  uint32_t offset = 0;
+  d3d11_device_context_->IASetVertexBuffers(0, 1, &line_buffer_, &stride, &offset);
+  d3d11_device_context_->Draw(current_line_count_ * 2, 0);
+}
+
+void D3D11Renderer::GetViewProjectionMatrix(RenderTargets& target, Mat44& view, Mat44& projection)
+{
+  switch (target)
+  {
+  case RenderTargets::kLeftEye:
+    view = vr_cam.view_left_;
+    projection = glm::transpose(vr_cam.left_eye_projection_);
+    break;
+  case RenderTargets::kRightEye:
+    view = vr_cam.view_right_;
+    projection = glm::transpose(vr_cam.right_eye_projection_);
+    break;
+  case RenderTargets::kDebugCamera:
+    view = glm::transpose(current_camera_->view());
+    projection = glm::transpose(current_camera_->perspective());
+    break;
+  }
 }
 
 void D3D11Renderer::AddToDrawQueue(ModelHandle handle)
@@ -443,86 +514,134 @@ void D3D11Renderer::RenderDrawQueue(Input* input)
 {
   if (vr_system_ != nullptr)
   {
-
+    d3d11_device_context_->RSSetViewports(1, &vr_viewport_);
     // setup the vr camera
     vr::HmdMatrix34_t pose = vr_system_->GetEyeToHeadTransform(vr::Eye_Left);
-    vr_cam.left_eye_view_ = { pose.m[0][0], pose.m[1][0], pose.m[2][0], 0.0f,
-                              pose.m[0][1], pose.m[1][1], pose.m[2][1], 0.0f,
-                              pose.m[0][2], pose.m[1][2], pose.m[2][2], 0.0f,
-                              pose.m[0][3], pose.m[1][3], pose.m[2][3], 1.0f };
+    vr_cam.left_eye_view_ = VrMat34ToMat44(pose);
     vr_cam.left_eye_view_ = glm::inverse(vr_cam.left_eye_view_);
 
     pose = vr_system_->GetEyeToHeadTransform(vr::Eye_Right);
-    vr_cam.right_eye_view_ = { pose.m[0][0], pose.m[1][0], pose.m[2][0], 0.0f,
-                               pose.m[0][1], pose.m[1][1], pose.m[2][1], 0.0f,
-                               pose.m[0][2], pose.m[1][2], pose.m[2][2], 0.0f,
-                               pose.m[0][3], pose.m[1][3], pose.m[2][3], 1.0f };
+    vr_cam.right_eye_view_ = VrMat34ToMat44(pose);
     vr_cam.right_eye_view_ = glm::inverse(vr_cam.right_eye_view_);
 
     vr::HmdMatrix44_t projection = vr_system_->GetProjectionMatrix(vr::Eye_Left, 1.0f, 10000.0f);
-    vr_cam.left_eye_projection_ = { projection.m[0][0], projection.m[1][0] , projection.m[2][0] ,projection.m[3][0] ,
-                                    projection.m[0][1], projection.m[1][1] , projection.m[2][1] ,projection.m[3][1] ,
-                                    projection.m[0][2], projection.m[1][2] , projection.m[2][2] ,projection.m[3][2] ,
-                                    projection.m[0][3], projection.m[1][3] , projection.m[2][3] ,projection.m[3][3] };
+    vr_cam.left_eye_projection_ = VrMat44ToMat44(projection); 
 
     projection = vr_system_->GetProjectionMatrix(vr::Eye_Right, 1.0f, 10000.0f);
+    vr_cam.right_eye_projection_ = VrMat44ToMat44(projection);
 
-    vr_cam.right_eye_projection_ = { projection.m[0][0], projection.m[1][0] , projection.m[2][0] ,projection.m[3][0] ,
-                                     projection.m[0][1], projection.m[1][1] , projection.m[2][1] ,projection.m[3][1] ,
-                                     projection.m[0][2], projection.m[1][2] , projection.m[2][2] ,projection.m[3][2] ,
-                                     projection.m[0][3], projection.m[1][3] , projection.m[2][3] ,projection.m[3][3] };
+    vr_cam.view_left_ = glm::transpose(vr_cam.left_eye_view_ * hmd_pose);
+    vr_cam.view_right_ = glm::transpose(vr_cam.right_eye_view_ * hmd_pose);
 
-    vr_cam.inv_head_pose_ = glm::inverse(input->Pose(Input::Controller::kHead));
-
+    // clear the left eye texture
     ID3D11RenderTargetView* render_target = left_eye_->render_target();
-    d3d11_device_context_->OMSetRenderTargets(1, &render_target, depth_stencil_view_);
+    d3d11_device_context_->OMSetRenderTargets(1, &render_target, vr_depth_stencil_view_);
+    d3d11_device_context_->ClearRenderTargetView(render_target, clear_color_);
+    d3d11_device_context_->ClearDepthStencilView(vr_depth_stencil_view_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-    // draw everything for the left eye
-    // process the first element in the queue and immidiatly place it back at the end
+    // set the shader to use the model shader
+    d3d11_device_context_->VSSetShader(vs_, 0, 0);
+    d3d11_device_context_->PSSetShader(ps_, 0, 0);
+    d3d11_device_context_->IASetInputLayout(vert_layout_);
+
+    // draw the scene to the left eye texture
     for (size_t i = 0; i < draw_queue_.size(); ++i)
     {
       ModelHandle handle = draw_queue_.front();
       draw_queue_.pop();
       draw_queue_.push(DrawModel(handle, RenderTargets::kLeftEye));
     }
+    d3d11_device_context_->VSSetShader(vs_debug_, 0, 0);
+    d3d11_device_context_->PSSetShader(ps_debug_, 0, 0);
+    d3d11_device_context_->IASetInputLayout(vert_layout_debug_);
+    DrawDebug(RenderTargets::kLeftEye);
 
+    // clear the right eye texture
     render_target = right_eye_->render_target();
-    d3d11_device_context_->OMSetRenderTargets(1, &render_target, depth_stencil_view_);
+    d3d11_device_context_->OMSetRenderTargets(1, &render_target, vr_depth_stencil_view_);
+    d3d11_device_context_->ClearRenderTargetView(render_target, clear_color_);
+    d3d11_device_context_->ClearDepthStencilView(vr_depth_stencil_view_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-    // draw everything in the queue again for the right eye
+    // set the shader to use the model shgader
+    d3d11_device_context_->VSSetShader(vs_, 0, 0);
+    d3d11_device_context_->PSSetShader(ps_, 0, 0);
+    d3d11_device_context_->IASetInputLayout(vert_layout_);
+
+    // draw the scene to the right eye texture
     for (size_t i = 0; i < draw_queue_.size(); ++i)
     {
       ModelHandle handle = draw_queue_.front();
       draw_queue_.pop();
       draw_queue_.push(DrawModel(handle, RenderTargets::kRightEye));
     }
+    d3d11_device_context_->VSSetShader(vs_debug_, 0, 0);
+    d3d11_device_context_->PSSetShader(ps_debug_, 0, 0);
+    d3d11_device_context_->IASetInputLayout(vert_layout_debug_);
+    DrawDebug(RenderTargets::kRightEye);
   }
+  d3d11_device_context_->RSSetViewports(1, &debug_viewport_);
+  d3d11_device_context_->OMSetRenderTargets(1, &debug_render_target_view_, debug_depth_stencil_view_);
+  d3d11_device_context_->ClearRenderTargetView(debug_render_target_view_, clear_color_);
+  d3d11_device_context_->ClearDepthStencilView(debug_depth_stencil_view_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-  d3d11_device_context_->OMSetRenderTargets(1, &render_target_view_, depth_stencil_view_);
+  // set the shader to use the model shgader
+  d3d11_device_context_->VSSetShader(vs_, 0, 0);
+  d3d11_device_context_->PSSetShader(ps_, 0, 0);
+  d3d11_device_context_->IASetInputLayout(vert_layout_);
 
   // draw the scene a third time with a free cam so we can debug along side the scene
   for (; draw_queue_.size() > 0; draw_queue_.pop())
   {
     DrawModel(draw_queue_.front(), RenderTargets::kDebugCamera);
   }
+
+
+  d3d11_device_context_->VSSetShader(vs_debug_, 0, 0);
+  d3d11_device_context_->PSSetShader(ps_debug_, 0, 0);
+  d3d11_device_context_->IASetInputLayout(vert_layout_debug_);
+  DrawDebug(RenderTargets::kDebugCamera);
 }
 
-void D3D11Renderer::ReadShader(const char* shader_name, std::vector<char>& buffer)
+void D3D11Renderer::ReadShader(const char* shader_name, std::string& buffer)
 {
   std::string file_path = "./shaders/";
   file_path.append(shader_name);
   file_path.append(".cso");
-  std::ifstream file(file_path, std::ios::binary | std::ios::ate);
+  std::ifstream file(file_path, std::ios::binary);
+  
   if (file.good() == true)
   {
-    size_t size = file.tellg();
-    buffer.resize(size);
-    file.seekg(std::ios::beg);
-    file.read(buffer.data(), size);
+    buffer = std::string((std::istreambuf_iterator<char>(file)),
+                          std::istreambuf_iterator<char>());
   }
   else
   {
     printf("unable to load shader %s", file_path.c_str());
+  }
+}
+
+void D3D11Renderer::UpdatateHmdPose()
+{
+  if (!vr_system_)
+    return;
+
+  vr::VRCompositor()->WaitGetPoses(tracked_device_pose_, vr::k_unMaxTrackedDeviceCount, NULL, 0);
+
+  for (int nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice)
+  {
+    if (tracked_device_pose_[nDevice].bPoseIsValid)
+    {
+      device_pose[nDevice] = VrMat34ToMat44(tracked_device_pose_[nDevice].mDeviceToAbsoluteTracking);
+    }
+  }
+
+  if (tracked_device_pose_[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid)
+  {
+    hmd_pose = glm::inverse(device_pose[vr::k_unTrackedDeviceIndex_Hmd]);
+  }
+  else
+  {
+    printf("pose not valid");
   }
 }
 

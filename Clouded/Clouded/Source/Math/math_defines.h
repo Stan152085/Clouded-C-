@@ -9,6 +9,7 @@
 	using Vec2i = glm::i32vec2;
 	using Vec3i = glm::i32vec3;
 	using Vec4i = glm::i32vec4;
+  using Vec4u8 = glm::u8vec4;
 
   using Vec2u = glm::u32vec2;
   using Vec3u = glm::u32vec3;

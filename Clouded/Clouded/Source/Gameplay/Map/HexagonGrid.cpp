@@ -55,19 +55,19 @@ void HexagonGrid::DebugDraw(D3D11Renderer& gfx)
         points[i] = (Vec2(pos.x + hex_size_ * cos(angle_rad), pos.y + hex_size_ * sin(angle_rad)));
         wetness_points[i]=(Vec2(pos.x + hex_size_* tiles_[index].state->wetness() * cos(angle_rad), pos.y + hex_size_ * tiles_[index].state->wetness()* sin(angle_rad)));
       }
-
-      gfx.AddLine(Vec3(points[0],0), Vec3(points[1],0));
-      gfx.AddLine(Vec3(points[1],0), Vec3(points[2],0));
-      gfx.AddLine(Vec3(points[2],0), Vec3(points[3],0));
-      gfx.AddLine(Vec3(points[3],0), Vec3(points[4],0));
-      gfx.AddLine(Vec3(points[4],0), Vec3(points[5],0));
-      gfx.AddLine(Vec3(points[5],0), Vec3(points[0],0));
-      gfx.AddLine(Vec3(wetness_points[0], 0), Vec3(wetness_points[1], 0));
-      gfx.AddLine(Vec3(wetness_points[1], 0), Vec3(wetness_points[2], 0));
-      gfx.AddLine(Vec3(wetness_points[2], 0), Vec3(wetness_points[3], 0));
-      gfx.AddLine(Vec3(wetness_points[3], 0), Vec3(wetness_points[4], 0));
-      gfx.AddLine(Vec3(wetness_points[4], 0), Vec3(wetness_points[5], 0));
-      gfx.AddLine(Vec3(wetness_points[5], 0), Vec3(wetness_points[0], 0));
+      Vec4u8 green ( 0, 255, 0, 0 );
+      gfx.AddLine(Vec3(points[0],0), Vec3(points[1],0), green);
+      gfx.AddLine(Vec3(points[1],0), Vec3(points[2],0), green);
+      gfx.AddLine(Vec3(points[2],0), Vec3(points[3],0), green);
+      gfx.AddLine(Vec3(points[3],0), Vec3(points[4],0), green);
+      gfx.AddLine(Vec3(points[4],0), Vec3(points[5],0), green);
+      gfx.AddLine(Vec3(points[5],0), Vec3(points[0],0), green);
+      gfx.AddLine(Vec3(wetness_points[0], 0), Vec3(wetness_points[1], 0),green);
+      gfx.AddLine(Vec3(wetness_points[1], 0), Vec3(wetness_points[2], 0),green);
+      gfx.AddLine(Vec3(wetness_points[2], 0), Vec3(wetness_points[3], 0),green);
+      gfx.AddLine(Vec3(wetness_points[3], 0), Vec3(wetness_points[4], 0),green);
+      gfx.AddLine(Vec3(wetness_points[4], 0), Vec3(wetness_points[5], 0),green);
+      gfx.AddLine(Vec3(wetness_points[5], 0), Vec3(wetness_points[0], 0),green);
     }
   }
 }
