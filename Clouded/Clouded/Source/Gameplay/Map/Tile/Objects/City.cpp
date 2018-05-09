@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "City.h"
 
-void City::Update( HexagonGrid* grid, HexagonTile* tile )
+bool City::Update( HexagonGrid* grid, HexagonTile* tile )
 {
+  return false;
 }
 
 void City::Draw( float height )

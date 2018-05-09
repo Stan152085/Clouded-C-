@@ -3,6 +3,9 @@
 #include "SwampState.h"
 #include "SavannahState.h"
 
+#include "Gameplay/Map/Tile/Objects/Tree.h"
+#include "Gameplay/Map/Tile/HexagonTile.h"
+
 float GrassState::up_threshold_;
 float GrassState::down_threshold_;
 
@@ -12,7 +15,7 @@ GrassState::GrassState(float wetness)
 {
 }
 
-ITileState* GrassState::Update( HexagonGrid* grid )
+ITileState* GrassState::Update( HexagonGrid* grid, HexagonTile* tile )
 {
   if (wetness_ >= up_threshold_)
   {
@@ -22,7 +25,10 @@ ITileState* GrassState::Update( HexagonGrid* grid )
   {
     return new SavannahState(wetness_);
   }
-  
+  if ( tile->objects.size() == 0 )
+  {
+    tile->objects.push_back(new Tree());
+  }
   return nullptr;
 }
 

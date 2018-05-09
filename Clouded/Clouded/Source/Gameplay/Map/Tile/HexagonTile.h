@@ -11,7 +11,7 @@ class HexagonTile
 public:
   HexagonTile();
   void WetnessUpdate(BufferedTileData& target_state);
-  void Update( HexagonGrid* grid );
+  void Update( HexagonGrid* grid);
   ITileState* state;
   std::vector<IObject*> objects;
 };

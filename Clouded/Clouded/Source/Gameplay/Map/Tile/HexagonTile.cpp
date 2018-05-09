@@ -6,8 +6,9 @@
 
 HexagonTile::HexagonTile()
 {
-  float random = (rand() % 101) / 100.0f;
+  static float random = 1.f;
   state = StateConstructor::Create(random);
+  random *= 0.8f;
 }
 
 void HexagonTile::WetnessUpdate(BufferedTileData& target_state)
@@ -17,14 +18,17 @@ void HexagonTile::WetnessUpdate(BufferedTileData& target_state)
 
 void HexagonTile::Update( HexagonGrid* grid )
 {
-  ITileState* new_state = state->Update(grid);
-  if (new_state != nullptr)
+  ITileState* new_state = state->Update( grid, this );
+  if ( new_state != nullptr )
   {
     delete state;
     state = new_state;
   }
-  for ( IObject* object : objects )
+  for ( int i = static_cast< int >( objects.size() ) - 1; i >= 0; i-- )
   {
-    object->Update(grid, this);
+    if ( objects[i]->Update( grid, this ) == false )
+    {
+      objects.erase( objects.begin() + i );
+    }
   }
 }

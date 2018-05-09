@@ -95,6 +95,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Core\Time.h" />
     <ClInclude Include="Source\Core\Window.h" />
     <ClInclude Include="Source\Gameplay\Map\HexagonTile.h" />
     <ClInclude Include="Source\Gameplay\Map\Tile\HexagonTile.h" />
@@ -146,6 +147,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Clouded.cpp" />
+    <ClCompile Include="Source\Core\Time.cpp" />
     <ClCompile Include="Source\Core\Window.cpp" />
     <ClCompile Include="Source\Gameplay\Map\HexagonGrid.cpp" />
     <ClCompile Include="Source\Core\Camera.cpp" />

@@ -5,7 +5,7 @@ class HexagonTile;
 class IObject
 {
 public:
-  virtual void Update( HexagonGrid* grid, HexagonTile* tile) = 0;
+  virtual bool Update( HexagonGrid* grid, HexagonTile* tile ) = 0;
   virtual void Draw(float height) = 0;
 
   Transform transform;

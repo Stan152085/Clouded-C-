@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "Fire.h"
 
-void Fire::Update( HexagonGrid* grid, HexagonTile* tile )
+bool Fire::Update( HexagonGrid* grid, HexagonTile* tile )
 {
+  return false;
 }
 
 void Fire::Draw( float height )

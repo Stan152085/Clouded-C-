@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "Forest.h"
 
-void Forest::Update( HexagonGrid* grid, HexagonTile* tile )
+bool Forest::Update( HexagonGrid* grid, HexagonTile* tile )
 {
+  return false;
 }
 
 void Forest::Draw( float height )

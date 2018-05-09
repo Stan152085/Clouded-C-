@@ -7,7 +7,7 @@ MountainState::MountainState()
 {
 }
 
-ITileState* MountainState::Update( HexagonGrid* grid )
+ITileState* MountainState::Update( HexagonGrid* grid, HexagonTile* tile )
 {
   return nullptr;
 }

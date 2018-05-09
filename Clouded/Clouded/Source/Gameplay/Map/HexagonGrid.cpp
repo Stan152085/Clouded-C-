@@ -1,11 +1,12 @@
 #include "stdafx.h"
 #include "HexagonGrid.h"
-#include "Tile\HexagonTile.h"
-#include "Tile\States\ITileState.h"
-#include "Tile\States\StateConstructor.h"
+#include "Tile/HexagonTile.h"
+#include "Tile/States/ITileState.h"
+#include "Tile/States/StateConstructor.h"
 
-#include "Graphics\renderer.h"
-#include "Math\math_defines.h"
+#include "Graphics/renderer.h"
+#include "Math/math_defines.h"
+#include "Core/Time.h"
 
 HexagonGrid::HexagonGrid( GridBounds bounds_, float hex_size )
   :
@@ -55,6 +56,10 @@ void HexagonGrid::DebugDraw(D3D11Renderer& gfx)
         wetness_points[i]=(Vec2(pos.x + hex_size_* tiles_[index].state->wetness() * cos(angle_rad), pos.y + hex_size_ * tiles_[index].state->wetness()* sin(angle_rad)));
       }
       Vec4u8 green ( 0, 255, 0, 0 );
+      if ( tiles_[index].objects.size() != 0 )
+      {
+        green = Vec4u8( 255, 0, 0, 0 );
+      }
       gfx.AddLine(Vec3(points[0],0), Vec3(points[1],0), green);
       gfx.AddLine(Vec3(points[1],0), Vec3(points[2],0), green);
       gfx.AddLine(Vec3(points[2],0), Vec3(points[3],0), green);
@@ -73,12 +78,22 @@ void HexagonGrid::DebugDraw(D3D11Renderer& gfx)
 
 void HexagonGrid::Update()
 {
-  // Actual update
+  for ( size_t y = 0; y < bounds_.GetMaxY(); ++y )
+  {
+    int row_offset = y & 1;
+    int x_offset[2][6] = { { 1,0,-1,-1,-1,0 },{ 1,1,0,-1,0,1 } };
+    int y_offset[2][6] = { { 0,-1,-1,0,1,1 },{ 0,-1,-1,0,1,1 } };
+    for ( size_t x = 0; x < bounds_.GetMaxX(); ++x )
+    {
+      size_t index = y * bounds_.GetMaxX() + x;
+      tiles_[index].Update(this);
+    }
+  }
 }
 
 void HexagonGrid::WetnessUpdate()
 {
-  // Wetness pass
+  // Wetness calculation pass
   for (size_t y = 0; y < bounds_.GetMaxY(); ++y)
   {
     int row_offset = y & 1;
@@ -100,7 +115,7 @@ void HexagonGrid::WetnessUpdate()
           delta_wetness += delta;
         }
       }
-      buffered_data_[index].delta_wetness += delta_wetness;
+      buffered_data_[index].delta_wetness += delta_wetness * Time::dt;
     }
   }
   // Apply delta wetness
@@ -113,6 +128,7 @@ void HexagonGrid::WetnessUpdate()
     {
       size_t index = y * bounds_.GetMaxX() + x;
       tiles_[index].state->set_wetness(glm::clamp(tiles_[index].state->wetness() + buffered_data_[index].delta_wetness, 0.0f, 1.0f));
+      buffered_data_[index].delta_wetness = 0.0f;
     }
   }
 }

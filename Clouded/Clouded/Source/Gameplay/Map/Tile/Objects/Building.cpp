@@ -1,8 +1,9 @@
 #include "stdafx.h"
 #include "Building.h"
 
-void Building::Update( HexagonGrid* grid, HexagonTile* tile )
+bool Building::Update( HexagonGrid* grid, HexagonTile* tile )
 {
+  return false;
 }
 
 void Building::Draw( float height )
