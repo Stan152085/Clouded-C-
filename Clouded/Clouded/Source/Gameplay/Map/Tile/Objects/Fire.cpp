@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Fire.h"
 
-void Fire::Update()
+void Fire::Update( HexagonGrid* grid, HexagonTile* tile )
 {
 }
 

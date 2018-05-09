@@ -1,6 +1,6 @@
 #pragma once
 #include "IObject.h"
-class Fire : public IObject
+class Building : public IObject
 {
   virtual void Update( HexagonGrid* grid, HexagonTile* tile ) override;
   virtual void Draw( float height ) override;

@@ -15,11 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.cpp">
-      <Filter>Source Files</Filter>
-    </Text>
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="Source\targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -161,6 +156,15 @@
     <ClInclude Include="Source\Gameplay\Map\Tile\Objects\Fire.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Gameplay\Map\Tile\Objects\Building.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Gameplay\Map\Tile\Objects\City.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Gameplay\Map\Tile\Objects\Forest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Clouded.cpp">
@@ -251,6 +255,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Gameplay\Map\Tile\Objects\Fire.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Gameplay\Map\Tile\Objects\Building.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Gameplay\Map\Tile\Objects\City.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Gameplay\Map\Tile\Objects\Forest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

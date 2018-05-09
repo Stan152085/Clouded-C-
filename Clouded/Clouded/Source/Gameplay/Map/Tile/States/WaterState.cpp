@@ -10,7 +10,7 @@ WaterState::WaterState(float wetness)
 {
 }
 
-ITileState* WaterState::Update()
+ITileState* WaterState::Update( HexagonGrid* grid )
 {
   if (wetness_ < down_threshold_)
   {

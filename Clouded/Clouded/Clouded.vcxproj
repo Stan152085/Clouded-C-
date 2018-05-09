@@ -95,16 +95,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="Source\Core\Window.h" />
     <ClInclude Include="Source\Gameplay\Map\HexagonTile.h" />
     <ClInclude Include="Source\Gameplay\Map\Tile\HexagonTile.h" />
     <ClInclude Include="Source\Gameplay\Map\HexagonGrid.h" />
     <ClInclude Include="Source\Core\Camera.h" />
     <ClInclude Include="Source\Core\Transform.h" />
+    <ClInclude Include="Source\Gameplay\Map\Tile\Objects\Building.h" />
+    <ClInclude Include="Source\Gameplay\Map\Tile\Objects\City.h" />
     <ClInclude Include="Source\Gameplay\Map\Tile\Objects\Fire.h" />
+    <ClInclude Include="Source\Gameplay\Map\Tile\Objects\Forest.h" />
     <ClInclude Include="Source\Gameplay\Map\Tile\Objects\Tree.h" />
     <ClInclude Include="Source\Gameplay\Map\Tile\States\DesertState.h" />
     <ClInclude Include="Source\Gameplay\Map\Tile\States\GrassState.h" />
@@ -150,7 +150,10 @@
     <ClCompile Include="Source\Gameplay\Map\HexagonGrid.cpp" />
     <ClCompile Include="Source\Core\Camera.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\HexagonTile.cpp" />
+    <ClCompile Include="Source\Gameplay\Map\Tile\Objects\Building.cpp" />
+    <ClCompile Include="Source\Gameplay\Map\Tile\Objects\City.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\Objects\Fire.cpp" />
+    <ClCompile Include="Source\Gameplay\Map\Tile\Objects\Forest.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\Objects\Tree.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\States\DesertState.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\States\GrassState.cpp" />

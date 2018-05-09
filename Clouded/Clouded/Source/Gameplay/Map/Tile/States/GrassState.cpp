@@ -12,7 +12,7 @@ GrassState::GrassState(float wetness)
 {
 }
 
-ITileState* GrassState::Update()
+ITileState* GrassState::Update( HexagonGrid* grid )
 {
   if (wetness_ >= up_threshold_)
   {
@@ -22,6 +22,7 @@ ITileState* GrassState::Update()
   {
     return new SavannahState(wetness_);
   }
+  
   return nullptr;
 }
 

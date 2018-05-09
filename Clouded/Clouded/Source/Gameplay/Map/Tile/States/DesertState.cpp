@@ -11,7 +11,7 @@ DesertState::DesertState(float wetness)
 {
 }
 
-ITileState* DesertState::Update()
+ITileState* DesertState::Update( HexagonGrid* grid )
 {
   if (wetness_ >= up_threshold_)
   {

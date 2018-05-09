@@ -4,7 +4,7 @@ class DesertState : public ITileState
 {
 public:
   DesertState(float wetness);
-  ITileState* Update() override;
+  ITileState* Update(HexagonGrid* grid) override;
   float CalculateWaterTransition(ITileState* other) override;
 
   static float up_threshold_;

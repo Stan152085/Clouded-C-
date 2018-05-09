@@ -4,6 +4,6 @@ class MountainState : public ITileState
 {
 public:
   MountainState( );
-  ITileState* Update() override;
+  ITileState* Update( HexagonGrid* grid ) override;
   float CalculateWaterTransition( ITileState* other ) override;
 };

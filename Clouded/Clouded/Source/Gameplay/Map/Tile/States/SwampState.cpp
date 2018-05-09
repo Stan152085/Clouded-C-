@@ -12,7 +12,7 @@ SwampState::SwampState(float wetness)
 {
 }
 
-ITileState* SwampState::Update()
+ITileState* SwampState::Update( HexagonGrid* grid )
 {
   if (wetness_ >= up_threshold_)
   {

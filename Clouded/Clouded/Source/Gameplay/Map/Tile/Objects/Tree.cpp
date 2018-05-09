@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Tree.h"
 
-void Tree::Update()
+void Tree::Update( HexagonGrid* grid, HexagonTile* tile )
 {
 }
 

@@ -15,9 +15,9 @@ void HexagonTile::WetnessUpdate(BufferedTileData& target_state)
   target_state.delta_wetness = state->wetness();
 }
 
-void HexagonTile::Update()
+void HexagonTile::Update( HexagonGrid* grid )
 {
-  ITileState* new_state = state->Update();
+  ITileState* new_state = state->Update(grid);
   if (new_state != nullptr)
   {
     delete state;
@@ -25,6 +25,6 @@ void HexagonTile::Update()
   }
   for ( IObject* object : objects )
   {
-    object->Update();
+    object->Update(grid, this);
   }
 }

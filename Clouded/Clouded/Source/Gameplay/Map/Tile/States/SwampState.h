@@ -4,7 +4,7 @@ class SwampState : public ITileState
 {
 public:
   SwampState(float wetness);
-  ITileState* Update() override;
+  ITileState* Update( HexagonGrid* grid ) override;
   virtual float CalculateWaterTransition(ITileState * other) override;
   
   static float up_threshold_;

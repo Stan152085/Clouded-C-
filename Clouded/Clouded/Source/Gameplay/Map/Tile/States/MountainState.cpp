@@ -7,9 +7,9 @@ MountainState::MountainState()
 {
 }
 
-ITileState* MountainState::Update()
+ITileState* MountainState::Update( HexagonGrid* grid )
 {
-  return this;
+  return nullptr;
 }
 
 float MountainState::CalculateWaterTransition( ITileState * other )

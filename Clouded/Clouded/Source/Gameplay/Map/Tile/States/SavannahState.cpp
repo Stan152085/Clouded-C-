@@ -13,7 +13,7 @@ SavannahState::SavannahState(float wetness)
 {
 }
 
-ITileState* SavannahState::Update()
+ITileState* SavannahState::Update( HexagonGrid* grid )
 {
   if (wetness_ >= up_threshold_)
   {

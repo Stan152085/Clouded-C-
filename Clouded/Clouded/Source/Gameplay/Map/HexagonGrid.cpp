@@ -7,9 +7,9 @@
 #include "Graphics\renderer.h"
 #include "Math\math_defines.h"
 
-HexagonGrid::HexagonGrid(GridBounds bounds_, float hex_size)
+HexagonGrid::HexagonGrid( GridBounds bounds_, float hex_size )
   :
-  tiles_(reinterpret_cast<HexagonTile*>(malloc(bounds_.GetMaxX()*bounds_.GetMaxY() * sizeof(HexagonTile)))),
+  tiles_( new HexagonTile[bounds_.GetMaxX()*bounds_.GetMaxY()]),
   buffered_data_(reinterpret_cast<BufferedTileData*>(malloc(bounds_.GetMaxX()*bounds_.GetMaxY() * sizeof(BufferedTileData)))),
   bounds_(bounds_),
   hex_size_(hex_size)
@@ -23,7 +23,6 @@ HexagonGrid::HexagonGrid(GridBounds bounds_, float hex_size)
     int row_offset = y & 1;
     for (size_t x = 0; x < bounds_.GetMaxX(); ++x)
     {
-      tiles_[index] = HexagonTile();
       buffered_data_[index].delta_wetness = 0;
       ++index;
     }
