@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Input.h"
+#include "Keyboard.h"
 #include "Math\math_defines.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/transform.hpp>
@@ -22,6 +23,7 @@ struct VRControllerData
 struct InputData
 {
   VRControllerData controller_data[Input::kNumControlers];
+  Keyboard keyboard;
 };
 
 Mat44 Input::Pose(Controller type)
@@ -272,4 +274,15 @@ void Input::Poll()
       break;
     }
   }
+}
+
+Keyboard& Input::GetKeyboard()
+{
+  InputData& input_data = reinterpret_cast<InputData&>( *pImpl );
+  return input_data.keyboard;
+}
+
+bool Input::IsKeyPressed( KeyboardButton button )
+{
+  return GetKeyboard().states[button];
 }

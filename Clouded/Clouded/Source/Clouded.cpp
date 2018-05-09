@@ -58,13 +58,16 @@ int main()
     renderer.Clear();
 		// put main gameloop here
 		// sf::Event event;
-    window.ProcessMessages();
+    window.ProcessMessages(input);
     input.Poll();
     //if (input.IsButtonReleased(Input::kLeftHand, vr::EVRButtonId::k_EButton_SteamVR_Touchpad))
     //{
     //  window.Close();
     //}
-
+    if(input.IsKeyPressed(Input::UP))
+    {
+      cam.Move(Vec3(0, 1, 0),-1.f);
+    }
     renderer.SetClearColor(0, 0, 0, 0);
     renderer.AddToDrawQueue(model);
     DebugRenderer::DrawLine(Vec3(-2.0f,0.0f,0.0f), Vec3(2.0f, 0.0f, 0.0f), Vec4u8(255,0,0,255));

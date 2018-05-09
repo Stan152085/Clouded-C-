@@ -118,6 +118,7 @@
     <ClInclude Include="Source\Gameplay\Map\Tile\Objects\IObject.h" />
     <ClInclude Include="Source\Graphics\DebugRenderer.h" />
     <ClInclude Include="Source\Graphics\renderer.h" />
+    <ClInclude Include="Source\Input\Keyboard.h" />
     <ClInclude Include="Source\templste.h" />
     <ClInclude Include="Source\imgui\imconfig.h" />
     <ClInclude Include="Source\imgui\imgui.h" />

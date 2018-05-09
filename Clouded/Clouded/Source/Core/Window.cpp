@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "Core/Window.h"
+#include "Input/Input.h"
+#include "Input/Keyboard.h"
 #include <Windows.h>
+
 
 #define IDM_EXIT				105
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -77,18 +80,30 @@ bool Window::Create()
   return true;
 }
 
-void Window::ProcessMessages()
+void Window::ProcessMessages(Input& input)
 {
   MSG msg{};
   // Handle the windows messages.
-  if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+  while ( PeekMessage( &msg, NULL, 0, 0, PM_REMOVE ) )
   {
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
-  }
-  if (msg.message == WM_QUIT)
-  {
-    is_open_ = false;
+    TranslateMessage( &msg );
+    DispatchMessage( &msg );
+
+    if ( msg.message == WM_QUIT )
+    {
+      is_open_ = false;
+    }
+    if ( msg.message == WM_KEYDOWN )
+    {
+      if ( !( msg.lParam & 0x40000000 ) ) // no thank you on the autorepeat
+      {
+        input.GetKeyboard().states[msg.wParam] = true;
+      }
+    }
+    if ( msg.message == WM_KEYUP )
+    {
+      input.GetKeyboard().states[msg.wParam] = false;
+    }
   }
 }
 
