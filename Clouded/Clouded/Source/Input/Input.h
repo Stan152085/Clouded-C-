@@ -26,6 +26,7 @@ public:
     Trigger
   };
 
+  Mat44 Pose(Controller type);
   Vec3 Position(Controller type);
   Quat Rotation(Controller type);
   Vec3 Velocity(Controller type);

@@ -95,7 +95,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
+    <Text Include="ReadMe.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Gameplay\Map\Tile\HexagonTile.h" />
@@ -109,7 +109,9 @@
     <ClInclude Include="Source\Gameplay\Map\Tile\States\StateConstructor.h" />
     <ClInclude Include="Source\Gameplay\Map\Tile\States\SwampState.h" />
     <ClInclude Include="Source\Gameplay\Map\Tile\States\WaterState.h" />
+    <ClInclude Include="Source\Graphics\DebugRenderer.h" />
     <ClInclude Include="Source\Graphics\renderer.h" />
+    <ClInclude Include="Source\templste.h" />
     <ClInclude Include="Source\imgui\imconfig.h" />
     <ClInclude Include="Source\imgui\imgui.h" />
     <ClInclude Include="Source\imgui\imgui_internal.h" />
@@ -119,7 +121,7 @@
     <ClInclude Include="Source\Math\Bounds.h" />
     <ClInclude Include="Source\Math\CubicCoord.h" />
     <ClInclude Include="Source\Math\math_defines.h" />
-    <ClInclude Include="Source\Resources\GLTFLoader.h" />
+    <ClInclude Include="Source\Resources\AssetManager.h" />
     <ClInclude Include="Source\Resources\Material.h" />
     <ClInclude Include="Source\Resources\Mesh.h" />
     <ClInclude Include="Source\Resources\Model.h" />
@@ -148,9 +150,10 @@
     <ClCompile Include="Source\Gameplay\Map\Tile\States\StateConstructor.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\States\SwampState.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\States\WaterState.cpp" />
+    <ClCompile Include="Source\Graphics\DebugRenderer.cpp" />
     <ClCompile Include="Source\Graphics\Renderer.cpp" />
     <ClCompile Include="Source\Math\CubicCoord.cpp" />
-    <ClCompile Include="Source\Resources\GLTFLoader.cpp" />
+    <ClCompile Include="Source\Resources\AssetManager.cpp" />
     <ClCompile Include="Source\Resources\Mesh.cpp" />
     <ClCompile Include="Source\Resources\Model.cpp" />
     <ClCompile Include="Source\Resources\Texture.cpp" />
