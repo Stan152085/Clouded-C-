@@ -1,7 +1,8 @@
 #include "stdafx.h"
 #include "HexagonTile.h"
-#include "States\ITileState.h"
-#include "States\StateConstructor.h"
+#include "States/ITileState.h"
+#include "States/StateConstructor.h"
+#include "Objects/IObject.h"
 
 HexagonTile::HexagonTile()
 {
@@ -12,9 +13,6 @@ HexagonTile::HexagonTile()
 void HexagonTile::WetnessUpdate(BufferedTileData& target_state)
 {
   target_state.delta_wetness = state->wetness();
-  // Accumulate from surrounding tiles...
-
-  //
 }
 
 void HexagonTile::Update()
@@ -24,5 +22,9 @@ void HexagonTile::Update()
   {
     delete state;
     state = new_state;
+  }
+  for ( IObject* object : objects )
+  {
+    object->Update();
   }
 }

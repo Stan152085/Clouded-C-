@@ -21,24 +21,35 @@
       translation(translation)
     {}
 
-    inline void Reset()
+    inline Transform& Reset()
     {
       translation = Vec3(0,0,0);
       rotation = Quat(1.0f, 0.0f, 0.0f, 0.0f);
       scale = Vec3(1, 1, 1);
+      return *this;
     }
 
-    inline void Translate(const Vec3& trans)
+    inline Transform& Translate(const Vec3& trans)
     {
       translation += trans;
+      return *this;
     }
-    inline void Translate(float x, float y, float z)
+    inline Transform& Translate(float x, float y, float z)
     {
-      Translate(Vec3(x, y, z));
+      return Translate( Vec3( x, y, z ) );
     }
-    inline void SetPosition(const Vec3& pos)
+    inline Transform Translated( const Vec3& trans )
+    {
+      return Transform( scale, rotation, translation + trans );
+    }
+    inline Transform Translated( float x, float y, float z )
+    {
+      return Translated( Vec3( x, y, z ) );
+    }
+    inline Transform& SetPosition(const Vec3& pos)
     {
       translation = pos;
+      return *this;
     }
 
     inline Transform& Rotate(const Quat& rot)
