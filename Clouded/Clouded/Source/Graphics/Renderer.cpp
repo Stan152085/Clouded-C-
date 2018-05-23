@@ -429,12 +429,9 @@ ModelHandle D3D11Renderer::PushToGPU(const resources::Model& model)
   return std::make_shared<GPUModel>(vertex_buffer, index_buffer, num_idices, vert_offsets);
 }
 
-ModelHandle D3D11Renderer::DrawModel(ModelHandle model, RenderTargets render_target)
+DrawCall D3D11Renderer::DrawModel(DrawCall call, RenderTargets render_target)
 {
-  cb_per_obj.world = { 1,0,0,0,
-    0,1,0,0,
-    0,0,1,0,
-    0,0,0,1 };
+   cb_per_obj.world = call.world;
 
   GetViewProjectionMatrix(render_target, cb_per_obj.view, cb_per_obj.persp);
   d3d11_device_context_->UpdateSubresource(cb_per_object_buffer_, 0, NULL, &cb_per_obj, 0, 0);
@@ -442,16 +439,16 @@ ModelHandle D3D11Renderer::DrawModel(ModelHandle model, RenderTargets render_tar
 
   uint32_t stride = sizeof(resources::Vertex);
   uint32_t offset = 0;
-  d3d11_device_context_->IASetVertexBuffers(0, 1, &model->vert_buffer_, &stride, &offset);
-  d3d11_device_context_->IASetIndexBuffer(model->idx_buffer_, DXGI_FORMAT_R16_UINT, 0);
+  d3d11_device_context_->IASetVertexBuffers(0, 1, &call.handle->vert_buffer_, &stride, &offset);
+  d3d11_device_context_->IASetIndexBuffer(call.handle->idx_buffer_, DXGI_FORMAT_R16_UINT, 0);
 
   size_t cur_pos = 0;
-  for (size_t i = 0; i < model->vert_offsets_.size(); ++i)
+  for (size_t i = 0; i < call.handle->vert_offsets_.size(); ++i)
   {
-    d3d11_device_context_->DrawIndexed((uint32_t)model->num_idices_[i], (uint32_t)cur_pos, (int32_t)model->vert_offsets_[i]);
-    cur_pos += model->num_idices_[i];
+    d3d11_device_context_->DrawIndexed((uint32_t)call.handle->num_idices_[i], (uint32_t)cur_pos, (int32_t)call.handle->vert_offsets_[i]);
+    cur_pos += call.handle->num_idices_[i];
   }
-  return model;
+  return call;
 }
 
 void D3D11Renderer::DrawDebug(RenderTargets render_target)
@@ -492,9 +489,9 @@ void D3D11Renderer::GetViewProjectionMatrix(RenderTargets& target, Mat44& view, 
   }
 }
 
-void D3D11Renderer::AddToDrawQueue(ModelHandle handle)
+void D3D11Renderer::AddToDrawQueue(ModelHandle handle, const Mat44& world)
 {
-  draw_queue_.push(handle);
+   draw_queue_.push( { handle  , world } );
 }
 
 void D3D11Renderer::SetRenderState(RenderModes mode)
@@ -547,7 +544,7 @@ void D3D11Renderer::RenderDrawQueue(Input* input)
     // draw the scene to the left eye texture
     for (size_t i = 0; i < draw_queue_.size(); ++i)
     {
-      ModelHandle handle = draw_queue_.front();
+      DrawCall handle = draw_queue_.front();
       draw_queue_.pop();
       draw_queue_.push(DrawModel(handle, RenderTargets::kLeftEye));
     }
@@ -568,9 +565,10 @@ void D3D11Renderer::RenderDrawQueue(Input* input)
     d3d11_device_context_->IASetInputLayout(vert_layout_);
 
     // draw the scene to the right eye texture
+    // Likely a different container needs to be used.
     for (size_t i = 0; i < draw_queue_.size(); ++i)
     {
-      ModelHandle handle = draw_queue_.front();
+      DrawCall handle = draw_queue_.front();
       draw_queue_.pop();
       draw_queue_.push(DrawModel(handle, RenderTargets::kRightEye));
     }

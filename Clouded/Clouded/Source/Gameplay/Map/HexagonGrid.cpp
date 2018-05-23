@@ -35,7 +35,7 @@ void HexagonGrid::Draw( D3D11Renderer& gfx )
    int index = 0;
    float horizontal_distance;
    float vertical_distance;
-   float hex_height = hex_size_ * 2.0f;
+   float hex_height = 1.0f;
    float hex_width = hex_height * sqrtf( 3.0f ) / 2.0f;
    horizontal_distance = hex_width;
    vertical_distance = hex_height * .75f;
@@ -44,7 +44,7 @@ void HexagonGrid::Draw( D3D11Renderer& gfx )
       int row_offset = y & 1;
       for ( size_t x = 0; x < bounds_.GetMaxX(); ++x )
       {
-         tiles_[index].Draw( gfx, Vec2( x, y ) );
+         tiles_[index].Draw( gfx, Vec2( ( x + row_offset / 2.0f )*horizontal_distance, y*vertical_distance ) );
       }
    }
 }

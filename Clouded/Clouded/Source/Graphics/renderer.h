@@ -20,6 +20,12 @@ enum struct RenderModes
   kWireframe
 };
 
+// Feel free to rename
+struct DrawCall   
+{
+   ModelHandle handle;
+   Mat44 world;
+};
 
 class D3D11Renderer
 {
@@ -42,7 +48,7 @@ public:
   void ReleaseFromGPU(ModelHandle handle);
   ModelHandle PushToGPU(const resources::Model& model);
 
-  void AddToDrawQueue(ModelHandle handle);
+  void AddToDrawQueue(ModelHandle handle, const Mat44& world);
   void SetRenderState(RenderModes mode);
 private:
   enum struct RenderTargets
@@ -51,7 +57,7 @@ private:
     kRightEye,
     kDebugCamera
   };
-  ModelHandle DrawModel(ModelHandle model, RenderTargets render_target);
+  DrawCall DrawModel(DrawCall model, RenderTargets render_target);
   void DrawDebug(RenderTargets render_target);
   void GetViewProjectionMatrix(RenderTargets& target, Mat44& view, Mat44& projection);
 
@@ -133,7 +139,7 @@ private:
 
   float clear_color_[4];
   vr::IVRSystem* vr_system_;
-  std::queue<ModelHandle> draw_queue_;
+  std::queue<DrawCall> draw_queue_;
   vr::TrackedDevicePose_t tracked_device_pose_[vr::k_unMaxTrackedDeviceCount];
   Mat44 hmd_pose;
   Mat44 device_pose[vr::k_unMaxTrackedDeviceCount];

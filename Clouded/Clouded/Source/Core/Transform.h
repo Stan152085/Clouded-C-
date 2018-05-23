@@ -1,8 +1,5 @@
 #pragma once
 #include "Math/math_defines.h"
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/transform.hpp>
-#include <glm/gtx/quaternion.hpp>
 
   class Transform
   {

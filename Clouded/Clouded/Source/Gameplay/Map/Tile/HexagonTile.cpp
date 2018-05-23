@@ -5,7 +5,7 @@
 
 HexagonTile::HexagonTile()
 {
-  static float random = 1.f;
+  static float random = 0.f;
   state = ITileState::Create(random);
   random *= 0.8f;
 }

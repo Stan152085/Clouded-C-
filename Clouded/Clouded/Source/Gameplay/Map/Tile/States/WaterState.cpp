@@ -3,6 +3,8 @@
 #include "SwampState.h"
 #include "Resources/AssetManager.h"
 
+#include "Math/math_defines.h"
+
 #include "Graphics/renderer.h"
 float WaterState::down_threshold_;
 
@@ -21,9 +23,10 @@ ITileState* WaterState::Update( HexagonGrid* grid, HexagonTile* tile )
   return nullptr;
 }
 
-void WaterState::Draw( D3D11Renderer& gfx, const Vec2 & position )
+void WaterState::Draw( D3D11Renderer& gfx, const Vec2 &position )
 {
-   gfx.AddToDrawQueue( model_ );
+   Mat44 world = glm::transpose( glm::translate( Vec3( position.x, position.y, 0) ));
+   gfx.AddToDrawQueue( model_, world );
 }
 
 float WaterState::CalculateWaterTransition(ITileState* other)

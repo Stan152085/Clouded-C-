@@ -4,6 +4,9 @@
 #include <glm/matrix.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/constants.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 
 	using Vec2i = glm::i32vec2;

@@ -15,7 +15,8 @@ ITileState* MountainState::Update( HexagonGrid* grid, HexagonTile* tile )
 
 void MountainState::Draw( D3D11Renderer& gfx, const Vec2 & position )
 {
-   gfx.AddToDrawQueue( model_ );
+   Mat44 world = glm::translate( Vec3( position.x, 0, position.y ) );
+   gfx.AddToDrawQueue( model_, world );
 }
 
 float MountainState::CalculateWaterTransition( ITileState * other )
