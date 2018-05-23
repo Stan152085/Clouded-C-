@@ -29,8 +29,8 @@ ITileState* SavannahState::Update( HexagonGrid* grid, HexagonTile* tile )
 
 void SavannahState::Draw( D3D11Renderer& gfx, const Vec2 & position )
 {
-   Mat44 world = glm::translate( Vec3( position.x, 0, position.y ) );
-   gfx.AddToDrawQueue( model_, world );
+   ITileState::Draw( gfx, position );
+
 }
 
 float SavannahState::CalculateWaterTransition(ITileState * other)

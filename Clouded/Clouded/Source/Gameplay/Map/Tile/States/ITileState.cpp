@@ -6,6 +6,7 @@
 #include "SwampState.h"
 #include "WaterState.h"
 #include "Resources/AssetManager.h"
+#include "Graphics/Renderer.h"
 
 #include <string>
 
@@ -16,6 +17,12 @@ ITileState::ITileState(float wetness, const char* model)
   wetness_(wetness),
   model_( asset_manager_->GetModel( std::string( model),std::string()))
 {
+}
+
+void ITileState::Draw( D3D11Renderer& gfx, const Vec2 & position )
+{
+   Mat44 world = glm::translate( Vec3( position.x, position.y,0 ) );
+   gfx.AddToDrawQueue( model_, world );
 }
 
 ITileState* ITileState::Create( float wetness )

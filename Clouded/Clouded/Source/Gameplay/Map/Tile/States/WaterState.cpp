@@ -25,8 +25,8 @@ ITileState* WaterState::Update( HexagonGrid* grid, HexagonTile* tile )
 
 void WaterState::Draw( D3D11Renderer& gfx, const Vec2 &position )
 {
-   Mat44 world = glm::transpose( glm::translate( Vec3( position.x, position.y, 0) ));
-   gfx.AddToDrawQueue( model_, world );
+   ITileState::Draw( gfx, position );
+
 }
 
 float WaterState::CalculateWaterTransition(ITileState* other)
