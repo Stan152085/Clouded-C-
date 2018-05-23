@@ -2,20 +2,20 @@
 #include "HexagonGrid.h"
 #include "Tile/HexagonTile.h"
 #include "Tile/States/ITileState.h"
-#include "Tile/States/StateConstructor.h"
 
+#include "Resources/AssetManager.h"
 #include "Graphics/renderer.h"
 #include "Math/math_defines.h"
 #include "Core/Time.h"
 
-HexagonGrid::HexagonGrid( GridBounds bounds_, float hex_size )
+HexagonGrid::HexagonGrid( GridBounds bounds_, float hex_size, resources::AssetManager& asset_manager )
   :
-  tiles_( new HexagonTile[bounds_.GetMaxX()*bounds_.GetMaxY()]),
   buffered_data_(reinterpret_cast<BufferedTileData*>(malloc(bounds_.GetMaxX()*bounds_.GetMaxY() * sizeof(BufferedTileData)))),
   bounds_(bounds_),
   hex_size_(hex_size)
 {
-  StateConstructor::Initialize();
+  ITileState::Initialize(asset_manager);
+  tiles_ = new HexagonTile[bounds_.GetMaxX()*bounds_.GetMaxY()];
   size_t width = bounds_.GetMaxX();
   size_t height = bounds_.GetMaxY();
   int index = 0;
@@ -28,6 +28,10 @@ HexagonGrid::HexagonGrid( GridBounds bounds_, float hex_size )
       ++index;
     }
   }
+}
+
+void HexagonGrid::Draw( D3D11Renderer & gfx )
+{
 }
 
 void HexagonGrid::DebugDraw(D3D11Renderer& gfx)

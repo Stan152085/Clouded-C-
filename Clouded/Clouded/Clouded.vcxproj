@@ -112,11 +112,11 @@
     <ClInclude Include="Source\Gameplay\Map\Tile\States\ITileState.h" />
     <ClInclude Include="Source\Gameplay\Map\Tile\States\MountainState.h" />
     <ClInclude Include="Source\Gameplay\Map\Tile\States\SavannahState.h" />
-    <ClInclude Include="Source\Gameplay\Map\Tile\States\StateConstructor.h" />
     <ClInclude Include="Source\Gameplay\Map\Tile\States\SwampState.h" />
     <ClInclude Include="Source\Gameplay\Map\Tile\States\WaterState.h" />
     <ClInclude Include="Source\Gameplay\Map\Tile\Objects\IObject.h" />
     <ClInclude Include="Source\Graphics\DebugRenderer.h" />
+    <ClInclude Include="Source\Graphics\GPUModel.h" />
     <ClInclude Include="Source\Graphics\renderer.h" />
     <ClInclude Include="Source\Input\Keyboard.h" />
     <ClInclude Include="Source\templste.h" />
@@ -163,7 +163,6 @@
     <ClCompile Include="Source\Gameplay\Map\Tile\States\ITileState.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\States\MountainState.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\States\SavannahState.cpp" />
-    <ClCompile Include="Source\Gameplay\Map\Tile\States\StateConstructor.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\States\SwampState.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\States\WaterState.cpp" />
     <ClCompile Include="Source\Graphics\DebugRenderer.cpp" />

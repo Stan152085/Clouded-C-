@@ -77,7 +77,7 @@ namespace resources
 
   // Get a model from the cache. If it doesn't exist yet, load it
   ModelHandle AssetManager::GetModel(std::string& file,
-    D3D11Renderer& renderer, std::string& err)
+  std::string& err)
   {
     // try to find the model in the map
     auto it = model_map.find(file);
@@ -98,7 +98,7 @@ namespace resources
     Model res;
     ConstructModel(gltf_model, res, file);
 
-    ModelHandle gpu_handle = renderer.PushToGPU(res);
+    ModelHandle gpu_handle = renderer_.PushToGPU(res);
 
     // insert the new model into the map
     model_map.insert(std::make_pair(file, gpu_handle));
@@ -134,14 +134,14 @@ namespace resources
     return res;
   }
 
-  void AssetManager::CleanUp(D3D11Renderer& renderer)
+  void AssetManager::CleanUp()
   {
     ModelMap::iterator model_it;
     for (model_it = model_map.begin(); model_it != model_map.end(); ++model_it)
     {
       if (model_it->second.use_count() < 2)
       {
-        renderer.ReleaseFromGPU(model_it->second);
+        renderer_.ReleaseFromGPU(model_it->second);
         model_map.erase(model_it);
       }
     }
@@ -494,21 +494,21 @@ namespace resources
 
   void Run(D3D11Renderer& renderer)
   {
-    AssetManager manager;
+    AssetManager manager(renderer);
     std::string file_name_cube = "../Assets/Samples/Cube/Cube.gltf";
     std::string file_name_duck = "../Assets/Samples/Duck/Duck.gltf";
     std::string file_name_axe = "../Assets/Samples/Hexagon/MS_Axe.glb";
     std::string err;
 
     // check initial load
-    ModelHandle cube = manager.GetModel(file_name_cube, renderer, err);
-    ModelHandle duck = manager.GetModel(file_name_duck, renderer, err);
-    ModelHandle axe = manager.GetModel(file_name_axe, renderer, err);
+    ModelHandle cube = manager.GetModel(file_name_cube, err);
+    ModelHandle duck = manager.GetModel(file_name_duck, err);
+    ModelHandle axe = manager.GetModel(file_name_axe, err);
 
     // check if you only get a reference, not a new copy
-    ModelHandle cube2 = manager.GetModel(file_name_cube, renderer, err);
-    ModelHandle duck2 = manager.GetModel(file_name_duck, renderer, err);
-    ModelHandle axe2 = manager.GetModel(file_name_axe, renderer, err);
+    ModelHandle cube2 = manager.GetModel(file_name_cube, err);
+    ModelHandle duck2 = manager.GetModel(file_name_duck, err);
+    ModelHandle axe2 = manager.GetModel(file_name_axe, err);
 
     int test = 0;
   }

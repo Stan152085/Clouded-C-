@@ -8,7 +8,7 @@ float SwampState::down_threshold_;
 
 SwampState::SwampState(float wetness)
   :
-  ITileState(wetness)
+  ITileState(wetness, "../Assets/Samples/Hexagon/hexagon.glb" )
 {
 }
 
@@ -23,6 +23,10 @@ ITileState* SwampState::Update( HexagonGrid* grid, HexagonTile* tile )
     return new GrassState(wetness_);
   }
   return nullptr;
+}
+
+void SwampState::Draw( const Vec2 & position )
+{
 }
 
 float SwampState::CalculateWaterTransition(ITileState * other)

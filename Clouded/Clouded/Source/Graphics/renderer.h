@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include "GPUModel.h"
 #include <D3D11.h>
 #include <queue>
 #include <OpenVr\openvr.h>
@@ -12,25 +13,6 @@ namespace resources
   struct Vertex;
   class Model;
 }
-
-struct GPUModel
-{
-  GPUModel(ID3D11Buffer* const vert_buffer, ID3D11Buffer* const idx_buffer, const std::vector<size_t> num_idices, const std::vector<size_t> vert_offsets) :
-    vert_buffer_(vert_buffer),
-    idx_buffer_(idx_buffer),
-    num_idices_(num_idices),
-    vert_offsets_(vert_offsets)
-  {
-
-  }
-
-  ID3D11Buffer* const vert_buffer_;
-  ID3D11Buffer* const idx_buffer_;
-  const std::vector<size_t> num_idices_; //number of indices per mesh
-  const std::vector<size_t> vert_offsets_; //offset of the first vertex for each mesh
-};
-
-using ModelHandle = std::shared_ptr<GPUModel>;
 
 enum struct RenderModes
 {

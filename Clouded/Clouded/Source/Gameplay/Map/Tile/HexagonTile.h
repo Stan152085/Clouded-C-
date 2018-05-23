@@ -12,6 +12,7 @@ public:
   HexagonTile();
   void WetnessUpdate(BufferedTileData& target_state);
   void Update( HexagonGrid* grid);
+  void Draw( const Vec2& position );
   ITileState* state;
   std::vector<IObject*> objects;
 };

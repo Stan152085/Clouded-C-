@@ -11,7 +11,7 @@ float GrassState::down_threshold_;
 
 GrassState::GrassState(float wetness)
   :
-  ITileState(wetness)
+  ITileState(wetness, "../Assets/Samples/Hexagon/hexagon.glb" )
 {
 }
 
@@ -30,6 +30,10 @@ ITileState* GrassState::Update( HexagonGrid* grid, HexagonTile* tile )
     tile->objects.push_back(new Tree());
   }
   return nullptr;
+}
+
+void GrassState::Draw( const Vec2 & position )
+{
 }
 
 float GrassState::CalculateWaterTransition(ITileState* other)

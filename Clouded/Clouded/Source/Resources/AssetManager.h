@@ -29,26 +29,18 @@ namespace resources
   class AssetManager
   {
   public:
-    AssetManager() {}
+    AssetManager(D3D11Renderer& renderer)
+    :
+      renderer_(renderer)
+    {}
     /**
     * how to use:
-    *   the first parameter is the file name. It has to be the complete relative path from
-    the working directory to the model, including the file type.
-    Example: std::string file_name_cube = "../Assets/Samples/Cube/Cube.gltf";
-
-    The second parameter should be an empty string. If any errors occured during loading,
-    they will be filled in here.
-
-    The load functions return a shared pointer, so memory management is done automatically.
-    There is always a reference in the resource maps in GLTFLoader.cpp, in global scope but
-    only accesible from that file. If you want out dated resources to be deleted,
-    call CleanUp(). It will remove all resources with just a single reference (the one in
-    the map).
+    *   really floris you did not even bother to maintain the comment...
     */
-    std::shared_ptr<GPUModel> GetModel(std::string& file, D3D11Renderer& renderer, std::string& err);
+    std::shared_ptr<GPUModel> GetModel(std::string& file, std::string& err);
     std::shared_ptr<Texture> GetTexture(std::string& file, std::string& err);
 
-    void CleanUp(D3D11Renderer& renderer);
+    void CleanUp();
 
   private:
     // prevent copying
@@ -66,8 +58,9 @@ namespace resources
     using TextureMap = std::unordered_map<std::string, std::shared_ptr<resources::Texture>>;
     ModelMap model_map;
     TextureMap texture_map;
+    D3D11Renderer& renderer_;
   };
 
   // test function
-  void Run(D3D11Renderer& renderer);
+  void Run( D3D11Renderer& renderer);
 }

@@ -1,12 +1,13 @@
 #include "stdafx.h"
 #include "WaterState.h"
 #include "SwampState.h"
+#include "Resources/AssetManager.h"
 
 float WaterState::down_threshold_;
 
 WaterState::WaterState(float wetness)
   :
-  ITileState(wetness)
+  ITileState(wetness, "../Assets/Samples/Hexagon/hexagon.glb" )
 {
 }
 
@@ -17,6 +18,10 @@ ITileState* WaterState::Update( HexagonGrid* grid, HexagonTile* tile )
     return new SwampState(wetness_);
   }
   return nullptr;
+}
+
+void WaterState::Draw( const Vec2 & position )
+{
 }
 
 float WaterState::CalculateWaterTransition(ITileState* other)

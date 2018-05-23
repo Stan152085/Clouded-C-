@@ -126,9 +126,6 @@
     <ClInclude Include="Source\Gameplay\Map\Tile\States\WaterState.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Gameplay\Map\Tile\States\StateConstructor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Core\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -169,6 +166,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\Input\Keyboard.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Graphics\GPUModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -240,9 +240,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Gameplay\Map\Tile\States\ITileState.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Gameplay\Map\Tile\States\StateConstructor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\Core\Window.cpp">

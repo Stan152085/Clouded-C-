@@ -1,13 +1,12 @@
 #include "stdafx.h"
 #include "HexagonTile.h"
 #include "States/ITileState.h"
-#include "States/StateConstructor.h"
 #include "Objects/IObject.h"
 
 HexagonTile::HexagonTile()
 {
   static float random = 1.f;
-  state = StateConstructor::Create(random);
+  state = ITileState::Create(random);
   random *= 0.8f;
 }
 
@@ -31,4 +30,9 @@ void HexagonTile::Update( HexagonGrid* grid )
       objects.erase( objects.begin() + i );
     }
   }
+}
+
+void HexagonTile::Draw( const Vec2& position )
+{
+  state->Draw( position );
 }

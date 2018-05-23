@@ -9,7 +9,7 @@ float SavannahState::down_threshold_;
 
 SavannahState::SavannahState(float wetness)
   :
-  ITileState(wetness)
+  ITileState(wetness, "../Assets/Samples/Hexagon/hexagon.glb" )
 {
 }
 
@@ -24,6 +24,10 @@ ITileState* SavannahState::Update( HexagonGrid* grid, HexagonTile* tile )
     return new DesertState(wetness_);
   }
   return nullptr;
+}
+
+void SavannahState::Draw( const Vec2 & position )
+{
 }
 
 float SavannahState::CalculateWaterTransition(ITileState * other)

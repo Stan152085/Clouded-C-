@@ -41,17 +41,18 @@ int main()
   DebugRenderer dbg_renderer;
   dbg_renderer.set_renderer(&renderer);
 
+  std::string err;
+  std::string file = "../Assets/Samples/Hexagon/hexagon.glb";
+  resources::AssetManager asset_manager( renderer );
+  auto model = asset_manager.GetModel( file, err );
+
   Camera cam((float)resolution.x, (float)resolution.y, 60.0f);
   cam.set_position(Vec3(0, 2, 5));
   renderer.SetCamera(&cam);
   GridBounds bounds = GridBounds(5,5);
-  HexagonGrid grid = HexagonGrid(bounds, 0.2f);
+  HexagonGrid grid = HexagonGrid( bounds, 0.2f, asset_manager );
   resources::Run(renderer);
 
-  std::string err;
-  std::string file = "../Assets/Samples/Hexagon/MS_Axe.glb";
-  resources::AssetManager asset_manager;
-  auto model = asset_manager.GetModel(file, renderer, err);
 
 	while (window.is_open())
 	{
@@ -66,11 +67,22 @@ int main()
     //}
     if(input.IsKeyPressed(Input::UP))
     {
-      cam.Move(Vec3(0, 1, 0),-1.f);
+      cam.Move(Vec3(0, 1, 0),-0.01f);
+    }
+    if ( input.IsKeyPressed( Input::DOWN ) )
+    {
+      cam.Move( Vec3( 0, 1, 0 ), 0.01f );
+    }
+    if ( input.IsKeyPressed( Input::LEFT ) )
+    {
+      cam.Move( Vec3( 1, 0, 0 ), 0.01f );
+    }
+    if ( input.IsKeyPressed( Input::RIGHT ) )
+    {
+      cam.Move( Vec3( 1, 0, 0 ), -0.01f );
     }
     renderer.SetClearColor(0, 0, 0, 0);
     renderer.AddToDrawQueue(model);
-    DebugRenderer::DrawLine(Vec3(-2.0f,0.0f,0.0f), Vec3(2.0f, 0.0f, 0.0f), Vec4u8(255,0,0,255));
     grid.Update();
     grid.WetnessUpdate();
     grid.DebugDraw( renderer );

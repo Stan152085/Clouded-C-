@@ -5,11 +5,48 @@
 #include "GrassState.h"
 #include "SwampState.h"
 #include "WaterState.h"
+#include "Resources/AssetManager.h"
 
-ITileState::ITileState(float wetness)
+#include <string>
+
+resources::AssetManager* ITileState::asset_manager_;
+
+ITileState::ITileState(float wetness, const char* model)
   :
-  wetness_(wetness)
+  wetness_(wetness),
+  model_( asset_manager_->GetModel( std::string( model),std::string()))
 {
+}
+
+ITileState* ITileState::Create( float wetness )
+{
+   assert( wetness >= 0 && wetness <= 1.0f );
+   if ( wetness < DesertState::up_threshold_ )
+   {
+      return new DesertState( wetness );
+   }
+   else if ( wetness < SavannahState::up_threshold_ )
+   {
+      return new SavannahState( wetness );
+   }
+   else if ( wetness < GrassState::up_threshold_ )
+   {
+      return new GrassState( wetness );
+   }
+   else if ( wetness < SwampState::up_threshold_ )
+   {
+      return new SwampState( wetness );
+   }
+   // Water does not have anything above it
+   else //if (wetness >= WaterState::up_threshold_)
+   {
+      return new WaterState( wetness );
+   }
+}
+
+void ITileState::Initialize( resources::AssetManager& asset_manager )
+{
+   asset_manager_ = &asset_manager;
 }
 
 float ITileState::wetness()
