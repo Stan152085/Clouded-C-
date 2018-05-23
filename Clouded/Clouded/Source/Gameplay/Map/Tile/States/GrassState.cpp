@@ -6,6 +6,8 @@
 #include "Gameplay/Map/Tile/Objects/Tree.h"
 #include "Gameplay/Map/Tile/HexagonTile.h"
 
+#include "Graphics/renderer.h"
+
 float GrassState::up_threshold_;
 float GrassState::down_threshold_;
 
@@ -32,8 +34,9 @@ ITileState* GrassState::Update( HexagonGrid* grid, HexagonTile* tile )
   return nullptr;
 }
 
-void GrassState::Draw( const Vec2 & position )
+void GrassState::Draw( D3D11Renderer& gfx, const Vec2& position )
 {
+   gfx.AddToDrawQueue( model_ );
 }
 
 float GrassState::CalculateWaterTransition(ITileState* other)

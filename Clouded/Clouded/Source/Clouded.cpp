@@ -82,9 +82,9 @@ int main()
       cam.Move( Vec3( 1, 0, 0 ), -0.01f );
     }
     renderer.SetClearColor(0, 0, 0, 0);
-    renderer.AddToDrawQueue(model);
     grid.Update();
     grid.WetnessUpdate();
+    grid.Draw( renderer );
     grid.DebugDraw( renderer );
     // grid.DebugDraw(renderer);
     renderer.Present(&input);

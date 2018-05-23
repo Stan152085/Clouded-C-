@@ -32,7 +32,7 @@ void HexagonTile::Update( HexagonGrid* grid )
   }
 }
 
-void HexagonTile::Draw( const Vec2& position )
+void HexagonTile::Draw( D3D11Renderer& gfx, const Vec2& position )
 {
-  state->Draw( position );
+  state->Draw( gfx, position );
 }

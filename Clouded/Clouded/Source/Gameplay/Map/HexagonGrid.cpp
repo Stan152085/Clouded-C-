@@ -30,8 +30,23 @@ HexagonGrid::HexagonGrid( GridBounds bounds_, float hex_size, resources::AssetMa
   }
 }
 
-void HexagonGrid::Draw( D3D11Renderer & gfx )
+void HexagonGrid::Draw( D3D11Renderer& gfx )
 {
+   int index = 0;
+   float horizontal_distance;
+   float vertical_distance;
+   float hex_height = hex_size_ * 2.0f;
+   float hex_width = hex_height * sqrtf( 3.0f ) / 2.0f;
+   horizontal_distance = hex_width;
+   vertical_distance = hex_height * .75f;
+   for ( size_t y = 0; y < bounds_.GetMaxY(); ++y )
+   {
+      int row_offset = y & 1;
+      for ( size_t x = 0; x < bounds_.GetMaxX(); ++x )
+      {
+         tiles_[index].Draw( gfx, Vec2( x, y ) );
+      }
+   }
 }
 
 void HexagonGrid::DebugDraw(D3D11Renderer& gfx)

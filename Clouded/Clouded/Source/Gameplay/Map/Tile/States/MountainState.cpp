@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "MountainState.h"
 
+#include "Graphics/renderer.h"
 MountainState::MountainState()
 :
   ITileState(0.f, "../Assets/Samples/Hexagon/hexagon.glb" )
@@ -12,8 +13,9 @@ ITileState* MountainState::Update( HexagonGrid* grid, HexagonTile* tile )
   return nullptr;
 }
 
-void MountainState::Draw( const Vec2 & position )
+void MountainState::Draw( D3D11Renderer& gfx, const Vec2 & position )
 {
+   gfx.AddToDrawQueue( model_ );
 }
 
 float MountainState::CalculateWaterTransition( ITileState * other )

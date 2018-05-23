@@ -3,6 +3,7 @@
 #include "GrassState.h"
 #include "DesertState.h"
 
+#include "Graphics/renderer.h"
 float SavannahState::up_threshold_;
 float SavannahState::down_threshold_;
 
@@ -26,8 +27,9 @@ ITileState* SavannahState::Update( HexagonGrid* grid, HexagonTile* tile )
   return nullptr;
 }
 
-void SavannahState::Draw( const Vec2 & position )
+void SavannahState::Draw( D3D11Renderer& gfx, const Vec2 & position )
 {
+   gfx.AddToDrawQueue( model_ );
 }
 
 float SavannahState::CalculateWaterTransition(ITileState * other)

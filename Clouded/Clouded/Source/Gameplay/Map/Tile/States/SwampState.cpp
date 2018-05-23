@@ -3,6 +3,7 @@
 #include "WaterState.h"
 #include "GrassState.h"
 
+#include "Graphics/renderer.h"
 float SwampState::up_threshold_;
 float SwampState::down_threshold_;
 
@@ -25,8 +26,9 @@ ITileState* SwampState::Update( HexagonGrid* grid, HexagonTile* tile )
   return nullptr;
 }
 
-void SwampState::Draw( const Vec2 & position )
+void SwampState::Draw( D3D11Renderer& gfx, const Vec2 & position )
 {
+   gfx.AddToDrawQueue( model_ );
 }
 
 float SwampState::CalculateWaterTransition(ITileState * other)

@@ -6,6 +6,7 @@ namespace resources
 }
 class HexagonGrid;
 class HexagonTile;
+class D3D11Renderer;
 class ITileState
 {
 public:
@@ -23,7 +24,7 @@ public:
 
   ITileState(float wetness, const char* model);
   virtual ITileState* Update(HexagonGrid* grid, HexagonTile* tile ) = 0;
-  virtual void Draw( const Vec2& position ) = 0;
+  virtual void Draw( D3D11Renderer& gfx, const Vec2& position ) = 0;
   virtual float CalculateWaterTransition(ITileState* other)=0;
   float wetness();
   void set_wetness(float wetness);

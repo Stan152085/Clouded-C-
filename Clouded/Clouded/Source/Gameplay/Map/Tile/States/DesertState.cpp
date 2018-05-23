@@ -4,6 +4,8 @@
 
 #include "Resources/AssetManager.h"
 
+#include "Graphics/renderer.h"
+
 float DesertState::up_threshold_;
 
 
@@ -22,9 +24,9 @@ ITileState* DesertState::Update( HexagonGrid* grid, HexagonTile* tile )
   return nullptr;
 }
 
-void DesertState::Draw( const Vec2& position )
+void DesertState::Draw( D3D11Renderer& gfx, const Vec2& position )
 {
-
+   gfx.AddToDrawQueue( model_ );
 }
 
 float DesertState::CalculateWaterTransition(ITileState* other)
