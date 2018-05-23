@@ -21,7 +21,7 @@ ITileState::ITileState(float wetness, const char* model)
 
 void ITileState::Draw( D3D11Renderer& gfx, const Vec2 & position )
 {
-   Mat44 world = glm::translate( Vec3( position.x, position.y,0 ) );
+   Mat44 world = glm::transpose(glm::translate( Vec3( position.x, position.y,0 ) ));
    gfx.AddToDrawQueue( model_, world );
 }
 
@@ -54,6 +54,15 @@ ITileState* ITileState::Create( float wetness )
 void ITileState::Initialize( resources::AssetManager& asset_manager )
 {
    asset_manager_ = &asset_manager;
+   DesertState::up_threshold_ = 0.2f;
+   SavannahState::up_threshold_ = 0.4f;
+   GrassState::up_threshold_ = 0.6f;
+   SwampState::up_threshold_ = 0.8f;
+   
+   SavannahState::down_threshold_ = DesertState::up_threshold_;
+   GrassState::down_threshold_ = SavannahState::up_threshold_;
+   SwampState::down_threshold_ = GrassState::up_threshold_;
+   WaterState::down_threshold_ = SwampState::up_threshold_;
 }
 
 float ITileState::wetness()
