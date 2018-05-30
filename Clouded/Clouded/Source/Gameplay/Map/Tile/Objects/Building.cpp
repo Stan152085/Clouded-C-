@@ -12,6 +12,6 @@ bool Building::Update( HexagonGrid* grid, HexagonTile* tile )
   return false;
 }
 
-void Building::Draw( D3D11Renderer& gfx, float height )
+void Building::Draw( D3D11Renderer& gfx, Vec3& position )
 {
 }

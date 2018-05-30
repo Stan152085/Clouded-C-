@@ -29,7 +29,7 @@ IObject* IObject::Create( Type type )
   case IObject::kForest:
     return new Forest("");
   case IObject::kTree:
-    return new Tree("");
+    return new Tree("../Assets/Samples/Cube/2cube.glb");
   default:
     return nullptr;
   }

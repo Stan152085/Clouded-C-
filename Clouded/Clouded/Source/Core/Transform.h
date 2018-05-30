@@ -51,7 +51,7 @@
 
     inline Transform& Rotate(const Quat& rot)
     {
-      rotation = glm::normalize(rot * rotation);
+      rotation = glm::normalize(rotation*rot);
       return *this;
     }
     inline Transform& Rotate( float x, float y, float z )

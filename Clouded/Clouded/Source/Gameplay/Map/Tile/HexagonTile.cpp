@@ -37,6 +37,6 @@ void HexagonTile::Draw( D3D11Renderer& gfx, const Vec2& position )
   state->Draw( gfx, position );
   for ( IObject* object : objects )
   {
-     object->Draw( gfx, state->wetness() );
+    object->Draw( gfx, Vec3( position.x , position.y, state->wetness() ) );
   }
 }

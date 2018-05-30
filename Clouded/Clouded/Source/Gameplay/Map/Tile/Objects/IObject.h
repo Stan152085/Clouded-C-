@@ -25,7 +25,7 @@ public:
    
    IObject( const char* model );
    virtual bool Update( HexagonGrid* grid, HexagonTile* tile ) = 0;
-   virtual void Draw( D3D11Renderer& gfx, float height ) = 0;
+   virtual void Draw( D3D11Renderer& gfx, Vec3& position ) = 0;
 
 protected:
    Transform transform;

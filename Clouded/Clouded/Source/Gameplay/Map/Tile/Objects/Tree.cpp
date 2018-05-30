@@ -34,9 +34,9 @@ bool Tree::Update( HexagonGrid* grid, HexagonTile* tile )
    return true;
 }
 
-void Tree::Draw( D3D11Renderer& gfx, float height )
+void Tree::Draw( D3D11Renderer& gfx, Vec3& position )
 {
-   Transform draw_transform = transform.Translated( 0, 0, height );
+  Transform draw_transform = transform.Translated( position + Vec3( 0, 0, life/100.f - 0.5f ) );
    // Draw model
    gfx.AddToDrawQueue( model_, glm::transpose( draw_transform.GetMatrix() ) );
 }

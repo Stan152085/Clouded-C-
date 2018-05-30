@@ -12,8 +12,8 @@ bool Fire::Update( HexagonGrid* grid, HexagonTile* tile )
   return false;
 }
 
-void Fire::Draw( D3D11Renderer& gfx, float height )
+void Fire::Draw( D3D11Renderer& gfx, Vec3& position )
 {
-  Transform draw_transform = transform.Translated( 0, height, 0 );
+  Transform draw_transform = transform.Translated( position );
   // Draw particle
 }

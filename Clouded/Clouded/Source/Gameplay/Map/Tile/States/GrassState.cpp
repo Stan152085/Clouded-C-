@@ -29,7 +29,7 @@ ITileState* GrassState::Update( HexagonGrid* grid, HexagonTile* tile )
   }
   if ( tile->objects.size() == 0 )
   {
-    tile->objects.push_back( IObject::Create( IObject::kTree ));
+    tile->objects.push_back( IObject::Create( IObject::kForest ));
   }
   return nullptr;
 }

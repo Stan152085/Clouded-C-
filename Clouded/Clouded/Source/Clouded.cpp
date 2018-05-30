@@ -84,19 +84,20 @@ int main()
     }
     if ( input.IsKeyPressed( Input::A ) )
     {
-      cam.transform.Rotate(0, -0.001f,0 );
+      cam.transform.Rotate( glm::rotate( -0.001f , Vec3( 0, 1.f, 0 ) ));
     }
     if ( input.IsKeyPressed( Input::D) )
     {
-      cam.transform.Rotate( 0, 0.001f, 0 );
+      cam.transform.Rotate( glm::rotate( 0.001f, Vec3( 0, 1.f, 0 ) ) );
     }
     if ( input.IsKeyPressed( Input::W ) )
     {
-      cam.transform.Rotate( 0.001f, 0, 0 );
+      cam.transform.Rotate( glm::rotate( 0.001f, Vec3( 1.f, 0, 0 ) ) );
     }
     if ( input.IsKeyPressed( Input::S ) )
     {
-      cam.transform.Rotate( -0.001f, 0, 0 );
+      cam.transform.Rotate( glm::rotate( -0.001f, Vec3( 1.f, 0, 0 ) ) );
+
     }
     renderer.SetClearColor(0, 0, 0, 0);
     grid.Update();
