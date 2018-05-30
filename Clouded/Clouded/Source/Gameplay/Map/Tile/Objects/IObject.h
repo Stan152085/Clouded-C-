@@ -1,12 +1,34 @@
 #pragma once
 #include "Core/Transform.h"
+#include "Graphics/GPUModel.h"
+namespace resources
+{
+   class AssetManager;
+}
 class HexagonGrid;
 class HexagonTile;
+class D3D11Renderer;
 class IObject
 {
 public:
-  virtual bool Update( HexagonGrid* grid, HexagonTile* tile ) = 0;
-  virtual void Draw(float height) = 0;
+   enum Type
+   {
+      kBuilding,
+      kCity,
+      kFire,
+      kForest,
+      kTree,
+   };
+public:
+   static void Initialize( resources::AssetManager& asset_manager );
+   static IObject* Create( Type type );
+   
+   IObject( const char* model );
+   virtual bool Update( HexagonGrid* grid, HexagonTile* tile ) = 0;
+   virtual void Draw( D3D11Renderer& gfx, float height ) = 0;
 
-  Transform transform;
+protected:
+   Transform transform;
+   ModelHandle model_;
+   static resources::AssetManager* asset_manager_;
 };

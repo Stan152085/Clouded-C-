@@ -79,18 +79,18 @@ void HexagonGrid::DebugDraw(D3D11Renderer& gfx)
       {
         green = Vec4u8( 255, 0, 0, 0 );
       }
-      gfx.AddLine(Vec3(points[0],0), Vec3(points[1],0), green);
-      gfx.AddLine(Vec3(points[1],0), Vec3(points[2],0), green);
-      gfx.AddLine(Vec3(points[2],0), Vec3(points[3],0), green);
-      gfx.AddLine(Vec3(points[3],0), Vec3(points[4],0), green);
-      gfx.AddLine(Vec3(points[4],0), Vec3(points[5],0), green);
-      gfx.AddLine(Vec3(points[5],0), Vec3(points[0],0), green);
-      gfx.AddLine(Vec3(wetness_points[0], 0), Vec3(wetness_points[1], 0),green);
-      gfx.AddLine(Vec3(wetness_points[1], 0), Vec3(wetness_points[2], 0),green);
-      gfx.AddLine(Vec3(wetness_points[2], 0), Vec3(wetness_points[3], 0),green);
-      gfx.AddLine(Vec3(wetness_points[3], 0), Vec3(wetness_points[4], 0),green);
-      gfx.AddLine(Vec3(wetness_points[4], 0), Vec3(wetness_points[5], 0),green);
-      gfx.AddLine(Vec3(wetness_points[5], 0), Vec3(wetness_points[0], 0),green);
+      gfx.AddLine(Vec3(points[0],0.1f), Vec3(points[1],0.1f), green);
+      gfx.AddLine(Vec3(points[1],0.1f), Vec3(points[2],0.1f), green);
+      gfx.AddLine(Vec3(points[2],0.1f), Vec3(points[3],0.1f), green);
+      gfx.AddLine(Vec3(points[3],0.1f), Vec3(points[4],0.1f), green);
+      gfx.AddLine(Vec3(points[4],0.1f), Vec3(points[5],0.1f), green);
+      gfx.AddLine(Vec3(points[5],0.1f), Vec3(points[0],0.1f), green);
+      gfx.AddLine(Vec3(wetness_points[0], 0.1f), Vec3(wetness_points[1], 0.1f),green);
+      gfx.AddLine(Vec3(wetness_points[1], 0.1f), Vec3(wetness_points[2], 0.1f),green);
+      gfx.AddLine(Vec3(wetness_points[2], 0.1f), Vec3(wetness_points[3], 0.1f),green);
+      gfx.AddLine(Vec3(wetness_points[3], 0.1f), Vec3(wetness_points[4], 0.1f),green);
+      gfx.AddLine(Vec3(wetness_points[4], 0.1f), Vec3(wetness_points[5], 0.1f),green);
+      gfx.AddLine(Vec3(wetness_points[5], 0.1f), Vec3(wetness_points[0], 0.1f),green);
     }
   }
 }

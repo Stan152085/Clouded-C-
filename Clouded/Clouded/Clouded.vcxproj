@@ -157,6 +157,7 @@
     <ClCompile Include="Source\Gameplay\Map\Tile\Objects\City.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\Objects\Fire.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\Objects\Forest.cpp" />
+    <ClCompile Include="Source\Gameplay\Map\Tile\Objects\IObject.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\Objects\Tree.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\States\DesertState.cpp" />
     <ClCompile Include="Source\Gameplay\Map\Tile\States\GrassState.cpp" />

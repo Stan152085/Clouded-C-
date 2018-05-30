@@ -4,43 +4,52 @@
 #include "Gameplay/Map/Tile/States/ITileState.h"
 #include "Core/Time.h"
 
-bool Tree::Update( HexagonGrid* grid, HexagonTile* tile )
+#include "Graphics/renderer.h"
+
+Tree::Tree( const char * model )
+  :
+  IObject(model)
 {
-  switch ( tile->state->Type() )
-  {
-  case ITileState::Water:
-  case ITileState::Desert:
-    Dying();
-    break;
-  case ITileState::Savannah:
-  case ITileState::Grass:
-  case ITileState::Swamp:
-    Growing(tile->state->wetness());
-    break;
-    break;
-  }
-  if ( life <= 0.0f )
-  {
-    return false;
-  }
-  return true;
 }
 
-void Tree::Draw( float height )
+bool Tree::Update( HexagonGrid* grid, HexagonTile* tile )
 {
-  Transform draw_transform = transform.Translated( 0, height, 0 );
-  // Draw model
+   switch ( tile->state->Type() )
+   {
+   case ITileState::Water:
+   case ITileState::Desert:
+      Dying();
+      break;
+   case ITileState::Savannah:
+   case ITileState::Grass:
+   case ITileState::Swamp:
+      Growing( tile->state->wetness() );
+      break;
+      break;
+   }
+   if ( life <= 0.0f )
+   {
+      return false;
+   }
+   return true;
+}
+
+void Tree::Draw( D3D11Renderer& gfx, float height )
+{
+   Transform draw_transform = transform.Translated( 0, 0, height );
+   // Draw model
+   gfx.AddToDrawQueue( model_, glm::transpose( draw_transform.GetMatrix() ) );
 }
 
 void Tree::Dying()
 {
-  life -= 1.0f * Time::dt;
+   life -= 1.0f * Time::dt;
 }
 
 void Tree::Growing( float dt )
 {
-  if ( life < 100.f )
-  {
-    life += 1.0f* Time::dt;
-  }
+   if ( life < 100.f )
+   {
+      life += 1.0f* Time::dt;
+   }
 }

@@ -50,7 +50,7 @@ int main()
   cam.set_position(Vec3(0, 2, 5));
   renderer.SetCamera(&cam);
   GridBounds bounds = GridBounds(5,5);
-  HexagonGrid grid = HexagonGrid( bounds, 0.2f, asset_manager );
+  HexagonGrid grid = HexagonGrid( bounds, 0.5f, asset_manager );
   resources::Run(renderer);
 
 

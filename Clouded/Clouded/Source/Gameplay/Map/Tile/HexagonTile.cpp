@@ -5,7 +5,7 @@
 
 HexagonTile::HexagonTile()
 {
-  static float random = 0.f;
+  static float random = 1.f;
   state = ITileState::Create(random);
   random *= 0.8f;
 }
@@ -35,4 +35,8 @@ void HexagonTile::Update( HexagonGrid* grid )
 void HexagonTile::Draw( D3D11Renderer& gfx, const Vec2& position )
 {
   state->Draw( gfx, position );
+  for ( IObject* object : objects )
+  {
+     object->Draw( gfx, state->wetness() );
+  }
 }
