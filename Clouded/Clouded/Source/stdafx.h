@@ -20,6 +20,5 @@
 #include <stdio.h>
 #include <tchar.h>
 #include <stdint.h>
-#include <glm\gtc\matrix_transform.hpp>
 
 // TODO: reference additional headers your program requires here

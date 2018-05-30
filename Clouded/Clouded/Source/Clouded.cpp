@@ -47,7 +47,8 @@ int main()
   auto model = asset_manager.GetModel( file, err );
 
   Camera cam((float)resolution.x, (float)resolution.y, 60.0f);
-  cam.set_position(Vec3(0, 2, 5));
+  cam.transform.SetPosition(Vec3(0, 0, 5));
+  cam.transform.SetRotationDegrees(Vec3(0,180,0));
   renderer.SetCamera(&cam);
   GridBounds bounds = GridBounds(5,5);
   HexagonGrid grid = HexagonGrid( bounds, 0.5f, asset_manager );
@@ -67,19 +68,35 @@ int main()
     //}
     if(input.IsKeyPressed(Input::UP))
     {
-      cam.Move(Vec3(0, 1, 0),-0.01f);
+      cam.transform.Translate( cam.transform.Forward()* 0.01f );
     }
     if ( input.IsKeyPressed( Input::DOWN ) )
     {
-      cam.Move( Vec3( 0, 1, 0 ), 0.01f );
+      cam.transform.Translate( cam.transform.Forward()* -0.01f );
     }
     if ( input.IsKeyPressed( Input::LEFT ) )
     {
-      cam.Move( Vec3( 1, 0, 0 ), 0.01f );
+      cam.transform.Translate( cam.transform.Right()* -0.01f );
     }
     if ( input.IsKeyPressed( Input::RIGHT ) )
     {
-      cam.Move( Vec3( 1, 0, 0 ), -0.01f );
+      cam.transform.Translate( cam.transform.Right()* 0.01f );
+    }
+    if ( input.IsKeyPressed( Input::A ) )
+    {
+      cam.transform.Rotate(0, -0.001f,0 );
+    }
+    if ( input.IsKeyPressed( Input::D) )
+    {
+      cam.transform.Rotate( 0, 0.001f, 0 );
+    }
+    if ( input.IsKeyPressed( Input::W ) )
+    {
+      cam.transform.Rotate( 0.001f, 0, 0 );
+    }
+    if ( input.IsKeyPressed( Input::S ) )
+    {
+      cam.transform.Rotate( -0.001f, 0, 0 );
     }
     renderer.SetClearColor(0, 0, 0, 0);
     grid.Update();

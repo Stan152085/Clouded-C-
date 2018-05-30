@@ -54,6 +54,11 @@
       rotation = glm::normalize(rot * rotation);
       return *this;
     }
+    inline Transform& Rotate( float x, float y, float z )
+    {
+      Rotate( Vec3( x, y, z ) );
+      return *this;
+    }
     inline Transform& Rotate(const Vec3& rot)
     {
       Rotate(Quat(rot));
@@ -113,17 +118,29 @@
         glm::rotate(lhs.rotation, lhs.translation) + lhs.translation);
     }
 
-    inline Mat44 GetMatrix()
+    inline Mat44 GetMatrix() const
     {
       return  glm::translate(Vec3(translation.x, translation.y, translation.z)) *
               glm::toMat4(rotation)*
               glm::scale(scale);
     }
-    inline Mat44 GetInversedMatrix()
+    inline Mat44 GetInversedMatrix() const
     {
       return glm::scale(Vec3(1.0f / scale.x, 1.0f / scale.y, 1.0f / scale.z))*
              glm::toMat4(glm::conjugate(rotation))*
              glm::translate(Vec3(-translation.x, -translation.y, -translation.z));
+    }
+    inline Vec3 Up() const
+    {
+      return glm::rotate( rotation, Vec3( 0, 1, 0 ) );
+    }
+    inline Vec3 Forward() const
+    {
+      return glm::rotate( rotation, Vec3( 0, 0, 1 ) );
+    }
+    inline Vec3 Right() const
+    {
+      return glm::rotate( rotation, Vec3( 1, 0, 0 ) );
     }
   private:
     Vec3 scale;

@@ -431,8 +431,11 @@ ModelHandle D3D11Renderer::PushToGPU(const resources::Model& model)
 
 DrawCall D3D11Renderer::DrawModel(DrawCall call, RenderTargets render_target)
 {
-   cb_per_obj.world = call.world;
-
+  if ( !call.handle )
+  {
+    return call;
+  }
+  cb_per_obj.world = call.world;
   GetViewProjectionMatrix(render_target, cb_per_obj.view, cb_per_obj.persp);
   d3d11_device_context_->UpdateSubresource(cb_per_object_buffer_, 0, NULL, &cb_per_obj, 0, 0);
   d3d11_device_context_->VSSetConstantBuffers(0, 1, &cb_per_object_buffer_);
