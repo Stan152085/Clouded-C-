@@ -1,4 +1,8 @@
 #pragma once
+#include <stdafx.h>
+
+struct GPUTextureResource;
+using GPUTextureResourceHandle = std::shared_ptr<GPUTextureResource>;
 
 namespace resources
 {
@@ -26,8 +30,13 @@ namespace resources
       return pixels_;
     }
 
+    GPUTextureResourceHandle* gpu_handle()
+    {
+      return &gpu_handle_;
+    }
   private:
     int width_, height_;
     Texel* pixels_;
+    GPUTextureResourceHandle gpu_handle_;
   };
 }

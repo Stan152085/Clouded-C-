@@ -115,9 +115,13 @@
     <ClInclude Include="Source\Gameplay\Map\Tile\States\SwampState.h" />
     <ClInclude Include="Source\Gameplay\Map\Tile\States\WaterState.h" />
     <ClInclude Include="Source\Gameplay\Map\Tile\Objects\IObject.h" />
+    <ClInclude Include="Source\Graphics\cb_buffers.h" />
     <ClInclude Include="Source\Graphics\DebugRenderer.h" />
     <ClInclude Include="Source\Graphics\GPUModel.h" />
+    <ClInclude Include="Source\Graphics\GPUTexture.h" />
+    <ClInclude Include="Source\Graphics\Lights.h" />
     <ClInclude Include="Source\Graphics\renderer.h" />
+    <ClInclude Include="Source\Graphics\vr_render_texture.h" />
     <ClInclude Include="Source\Input\Keyboard.h" />
     <ClInclude Include="Source\templste.h" />
     <ClInclude Include="Source\imgui\imconfig.h" />
@@ -168,6 +172,7 @@
     <ClCompile Include="Source\Gameplay\Map\Tile\States\WaterState.cpp" />
     <ClCompile Include="Source\Graphics\DebugRenderer.cpp" />
     <ClCompile Include="Source\Graphics\Renderer.cpp" />
+    <ClCompile Include="Source\Graphics\vr_render_texture.cpp" />
     <ClCompile Include="Source\Math\CubicCoord.cpp" />
     <ClCompile Include="Source\Resources\AssetManager.cpp" />
     <ClCompile Include="Source\Resources\Mesh.cpp" />

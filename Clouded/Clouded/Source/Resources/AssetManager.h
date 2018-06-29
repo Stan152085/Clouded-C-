@@ -37,7 +37,7 @@ namespace resources
     * how to use:
     *   really floris you did not even bother to maintain the comment...
     */
-    std::shared_ptr<GPUModel> GetModel(std::string& file, std::string& err);
+    std::shared_ptr<Model> GetModel(std::string& file, std::string& err);
     std::shared_ptr<Texture> GetTexture(std::string& file, std::string& err);
 
     void CleanUp();
@@ -54,8 +54,8 @@ namespace resources
     void ConstructMesh(const tinygltf::Model& source, const tinygltf::Primitive& prim,
       const std::vector<std::shared_ptr<Texture>>& textures, Model& result, const Transform& l2w);
 
-    using ModelMap = std::unordered_map<std::string, std::shared_ptr<GPUModel>>;
-    using TextureMap = std::unordered_map<std::string, std::shared_ptr<resources::Texture>>;
+    using ModelMap = std::unordered_map<std::string, std::shared_ptr<Model>>;
+    using TextureMap = std::unordered_map<std::string, std::shared_ptr<Texture>>;
     ModelMap model_map;
     TextureMap texture_map;
     D3D11Renderer& renderer_;

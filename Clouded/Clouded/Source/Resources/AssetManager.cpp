@@ -3,6 +3,11 @@
 #include "Model.h"
 #include "Texture.h"
 #include "ResourceManagementUtils.h"
+#include "Core/Transform.h"
+
+#include "Material.h"
+#include "Vertex.h"
+#include "Mesh.h"
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
@@ -76,7 +81,7 @@ namespace resources
   }
 
   // Get a model from the cache. If it doesn't exist yet, load it
-  ModelHandle AssetManager::GetModel(std::string& file,
+  std::shared_ptr<Model> AssetManager::GetModel(std::string& file,
   std::string& err)
   {
     // try to find the model in the map
@@ -95,14 +100,13 @@ namespace resources
     }
 
     // construct the clouded model from the gltf model
-    Model res;
-    ConstructModel(gltf_model, res, file);
-
-    ModelHandle gpu_handle = renderer_.PushToGPU(res);
+    std::shared_ptr<Model> res = std::make_shared<Model>();
+    ConstructModel(gltf_model, *res, file);
+    renderer_.PushToGPU(*res);
 
     // insert the new model into the map
-    model_map.insert(std::make_pair(file, gpu_handle));
-    return gpu_handle;
+    model_map.insert(std::make_pair(file, res));
+    return res;
   }
 
   // Get a texture from the cache. If it doesn't exist yet, load it
@@ -128,7 +132,7 @@ namespace resources
 
     // construct the clouded texture from the stb texture
     std::shared_ptr<Texture> res(new Texture(width, height, components, data));
-
+    renderer_.PushToGPU(*res);
     // insert the new texture into the map
     texture_map.insert(std::make_pair(file, res));
     return res;
@@ -141,7 +145,7 @@ namespace resources
     {
       if (model_it->second.use_count() < 2)
       {
-        renderer_.ReleaseFromGPU(model_it->second);
+        renderer_.ReleaseFromGPU(*model_it->second->gpu_handle());
         model_map.erase(model_it);
       }
     }
@@ -234,9 +238,11 @@ namespace resources
           std::shared_ptr<Texture> shared_tex(tex);
 
           // store the image in the texture map
+          renderer_.PushToGPU(*shared_tex);
           texture_map.insert(std::make_pair(image.uri, shared_tex));
 
           // store the texture in a local vector for easy referencing
+         
           textures.push_back(shared_tex);
         }
         else
@@ -501,14 +507,14 @@ namespace resources
     std::string err;
 
     // check initial load
-    ModelHandle cube = manager.GetModel(file_name_cube, err);
-    ModelHandle duck = manager.GetModel(file_name_duck, err);
-    ModelHandle axe = manager.GetModel(file_name_axe, err);
+    std::shared_ptr<Model> cube = manager.GetModel(file_name_cube, err);
+    std::shared_ptr<Model> duck = manager.GetModel(file_name_duck, err);
+    std::shared_ptr<Model> axe = manager.GetModel(file_name_axe, err);
 
     // check if you only get a reference, not a new copy
-    ModelHandle cube2 = manager.GetModel(file_name_cube, err);
-    ModelHandle duck2 = manager.GetModel(file_name_duck, err);
-    ModelHandle axe2 = manager.GetModel(file_name_axe, err);
+    std::shared_ptr<Model> cube2 = manager.GetModel(file_name_cube, err);
+    std::shared_ptr<Model> duck2 = manager.GetModel(file_name_duck, err);
+    std::shared_ptr<Model> axe2 = manager.GetModel(file_name_axe, err);
 
     int test = 0;
   }

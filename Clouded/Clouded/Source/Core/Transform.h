@@ -142,6 +142,12 @@
     {
       return glm::rotate( rotation, Vec3( 1, 0, 0 ) );
     }
+
+    inline Vec3 position()
+    {
+      return translation;
+    }
+
   private:
     Vec3 scale;
     Quat rotation;

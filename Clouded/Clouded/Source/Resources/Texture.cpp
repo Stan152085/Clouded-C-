@@ -8,7 +8,8 @@ resources::Texture::Texture(
   :
   width_(width),
   height_(height),
-  pixels_(new Texel[width * height])
+  pixels_(new Texel[width * height]),
+  gpu_handle_(nullptr)
 {
   if (components == 1)
   {

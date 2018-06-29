@@ -1,8 +1,8 @@
 #pragma once
-#include "Graphics/GPUModel.h"
 namespace resources
 {
    class AssetManager;
+   class Model;
 }
 class HexagonGrid;
 class HexagonTile;
@@ -31,7 +31,7 @@ public:
   State Type();
 protected:
   float wetness_;
-  ModelHandle model_;
+  std::shared_ptr<resources::Model> model_;
 
 private:
   static resources::AssetManager* asset_manager_;

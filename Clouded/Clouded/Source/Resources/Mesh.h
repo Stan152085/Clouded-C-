@@ -24,6 +24,10 @@ namespace resources
       return vertices_;
     }
 
+    Material material() const
+    {
+      return material_;
+    }
   private:
     std::vector<unsigned short> indices_;
     std::vector<Vertex> vertices_;

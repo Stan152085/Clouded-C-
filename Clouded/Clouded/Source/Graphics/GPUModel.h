@@ -2,10 +2,12 @@
 #include <vector>
 #include <memory>
 struct ID3D11Buffer;
+struct ID3D11ShaderResourceView;
+struct Material;
 
-struct GPUModel
+struct GPUModelResource
 {
-  GPUModel( ID3D11Buffer* const vert_buffer, ID3D11Buffer* const idx_buffer, const std::vector<size_t> num_idices, const std::vector<size_t> vert_offsets ) :
+  GPUModelResource( ID3D11Buffer* const vert_buffer, ID3D11Buffer* const idx_buffer, const std::vector<size_t> num_idices, const std::vector<size_t> vert_offsets) :
     vert_buffer_( vert_buffer ),
     idx_buffer_( idx_buffer ),
     num_idices_( num_idices ),
@@ -20,4 +22,4 @@ struct GPUModel
   const std::vector<size_t> vert_offsets_; //offset of the first vertex for each mesh
 };
 
-using ModelHandle = std::shared_ptr<GPUModel>;
+using GPUModelResourceHandle = std::shared_ptr<GPUModelResource>;

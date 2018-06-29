@@ -42,13 +42,21 @@ namespace resources
       b(b)
     {}
 
+    Vec4 GetNormalized() const
+    {
+      return Vec4((float)r / 255.0f,
+                  (float)g / 255.0f,
+                  (float)b / 255.0f,
+                  (float)a / 255.0f);
+    }
+
   public:
     union
     {
       int32_t color;
       struct
       {
-        unsigned char a, r, g, b;
+        unsigned char r, g, b, a;
       };
     };
   };

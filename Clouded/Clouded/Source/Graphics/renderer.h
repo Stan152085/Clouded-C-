@@ -1,17 +1,25 @@
 #pragma once
 #include "stdafx.h"
-#include "GPUModel.h"
-#include <D3D11.h>
-#include <queue>
 #include <OpenVr\openvr.h>
+#include <d3d11.h>
 
+class VRRenderTexture;
 class Input;
 class Camera;
+struct Light;
+
+struct GPUModelResource;
+using GPUModelResourceHandle = std::shared_ptr<GPUModelResource>;
+
+struct GPUTextureResource;
+using GPUTextureResourceHandle = std::shared_ptr<GPUTextureResource>;
 
 namespace resources
 {
   struct Vertex;
   class Model;
+  class Texture;
+  class Texel;
 }
 
 enum struct RenderModes
@@ -23,8 +31,8 @@ enum struct RenderModes
 // Feel free to rename
 struct DrawCall   
 {
-   ModelHandle handle;
-   Mat44 world;
+  std::shared_ptr<resources::Model> model;
+  Mat44 world;
 };
 
 class D3D11Renderer
@@ -40,15 +48,24 @@ public:
   void SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
   void AddLine(const Vec3& from, const Vec3& to, const Vec4u8& color);
 
+  void AddDirectionalLight(const Vec3& direction, const resources::Texel& color);
+  void AddPointLight(const Vec3& position, const resources::Texel& color);
+  void AddSpotLight(const Vec3& position, 
+                    const Vec3& direction, 
+                    const float& spot_angle, 
+                    const resources::Texel& color);
+
   void Clear();
 	void Present(Input* input);
   void SetCamera(Camera* cam);
 
-  
-  void ReleaseFromGPU(ModelHandle handle);
-  ModelHandle PushToGPU(const resources::Model& model);
+  void ReleaseFromGPU(GPUModelResourceHandle handle);
+  void ReleaseFromGPU(GPUTextureResourceHandle handle);
 
-  void AddToDrawQueue(ModelHandle handle, const Mat44& world);
+  bool PushToGPU( resources::Model& model);
+  bool PushToGPU( resources::Texture& texture);
+
+  void AddToDrawQueue(std::shared_ptr<resources::Model> handle, const Mat44& world);
   void SetRenderState(RenderModes mode);
 private:
   enum struct RenderTargets
@@ -60,22 +77,6 @@ private:
   DrawCall DrawModel(DrawCall model, RenderTargets render_target);
   void DrawDebug(RenderTargets render_target);
   void GetViewProjectionMatrix(RenderTargets& target, Mat44& view, Mat44& projection);
-
-  class RenderTexture
-  {
-  public:
-    RenderTexture();
-    bool Create(ID3D11Device*, uint32_t, uint32_t);
-    void Release();
-
-    ID3D11Texture2D* texture();
-    ID3D11RenderTargetView* render_target();
-    ID3D11ShaderResourceView* shader_resource();
-  private:
-    ID3D11Texture2D * texture_;
-    ID3D11RenderTargetView* render_target_;
-    ID3D11ShaderResourceView* shader_resource_;
-  };
 
   void RenderDrawQueue(Input* input);
 
@@ -101,8 +102,6 @@ private:
   ID3D11DepthStencilView* vr_depth_stencil_view_;
   ID3D11Texture2D* vr_depth_stencil_buffer_;
 
-
-
   /*shader program resources*/
   ID3D11VertexShader* vs_;
   ID3D11PixelShader* ps_;
@@ -111,8 +110,13 @@ private:
 
   ID3D11InputLayout* vert_layout_;
   ID3D11InputLayout* vert_layout_debug_;
+
   /*constant buffers*/
   ID3D11Buffer* cb_per_object_buffer_;
+  ID3D11Buffer* cb_material_per_object_buffer_;
+  ID3D11Buffer* cb_lights_per_draw_buffer_;
+
+  ID3D11SamplerState* default_sampler_;
 
   /*render states*/
   ID3D11RasterizerState* wireframe_;
@@ -120,9 +124,9 @@ private:
 
   D3D11_INPUT_ELEMENT_DESC layout[3] = {
     { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "NORM", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-    { "TANGENT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-   // { "UV", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 40, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+    { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    //{ "TANGENT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 }
   };
 
   D3D11_INPUT_ELEMENT_DESC debug_layout[2] =
@@ -134,12 +138,14 @@ private:
   Camera* current_camera_;
   
   /*vr stuff*/
-  RenderTexture* left_eye_;
-  RenderTexture* right_eye_;
+  VRRenderTexture* left_eye_;
+  VRRenderTexture* right_eye_;
 
   float clear_color_[4];
   vr::IVRSystem* vr_system_;
   std::queue<DrawCall> draw_queue_;
+  std::vector<Light> lights_;
+
   vr::TrackedDevicePose_t tracked_device_pose_[vr::k_unMaxTrackedDeviceCount];
   Mat44 hmd_pose;
   Mat44 device_pose[vr::k_unMaxTrackedDeviceCount];

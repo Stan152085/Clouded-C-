@@ -1,9 +1,9 @@
 #pragma once
 #include "Core/Transform.h"
-#include "Graphics/GPUModel.h"
 namespace resources
 {
    class AssetManager;
+   class Model;
 }
 class HexagonGrid;
 class HexagonTile;
@@ -29,6 +29,6 @@ public:
 
 protected:
    Transform transform;
-   ModelHandle model_;
+   std::shared_ptr<resources::Model> model_;
    static resources::AssetManager* asset_manager_;
 };

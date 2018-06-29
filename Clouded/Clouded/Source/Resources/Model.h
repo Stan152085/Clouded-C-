@@ -1,8 +1,12 @@
 #pragma once
-#include "Mesh.h"
+
+struct GPUModelResource;
+using GPUModelResourceHandle = std::shared_ptr<GPUModelResource>;
+
 
 namespace resources
 {
+  class Mesh;
   class Model
   {
   public:
@@ -13,7 +17,12 @@ namespace resources
 
     void AddMesh(const Mesh& mesh);
 
+    GPUModelResourceHandle* gpu_handle()
+    {
+      return &gpu_handle_;
+    }
   private:
     std::vector<Mesh> meshes_;
+    GPUModelResourceHandle gpu_handle_;
   };
 }

@@ -15,6 +15,7 @@
 #include <string>
 #include <assert.h>
 #include <memory>
+#include <queue>
 
 // required std includes for the forward declared header
 #include <stdio.h>

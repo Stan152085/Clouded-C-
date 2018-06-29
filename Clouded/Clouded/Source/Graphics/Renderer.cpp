@@ -5,7 +5,14 @@
 #include "Resources\Mesh.h"
 #include "Core\Camera.h"
 #include "DebugRenderer.h"
+#include "resources\Texel.h"
 #include "Input\Input.h"
+#include "cb_buffers.h"
+#include "vr_render_texture.h"
+#include "Lights.h"
+#include "Resources/Texture.h"
+#include "GPUModel.h"
+#include "GPUTexture.h"
 
 
 Mat44 VrMat34ToMat44(const vr::HmdMatrix34_t &matPose)
@@ -57,24 +64,21 @@ constexpr unsigned int max_line_count_ = 500;
 uint32_t current_line_count_ = 0;
 DebugVertex line_vertices[max_line_count_ * 2];
 
-struct constant_buffer
-{
-  Mat44 world;
-  Mat44 view;
-  Mat44 persp;
-};
-constant_buffer cb_per_obj;
+cb_per_object cb_per_obj;
 // Camera cam;
 
+//-------------------------------------------------------------------------------------------------
 D3D11Renderer::D3D11Renderer() :
   clear_color_{ 0.0f ,0.0f ,0.0f ,0.0f }
 {
 }
 
+//-------------------------------------------------------------------------------------------------
 D3D11Renderer::~D3D11Renderer()
 {
 }
 
+//-------------------------------------------------------------------------------------------------
 bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size, vr::IVRSystem* vr_system)
 {
   vr_system_ = vr_system;
@@ -120,11 +124,18 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size, vr::
   if (FAILED(result))
   {
     printf("Failed to create swap chain \n");
+    return false;
   }
 
   ID3D11Texture2D* back_buffer;
   swap_chain_->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back_buffer);
-  d3d11_device_->CreateRenderTargetView(back_buffer, NULL, &debug_render_target_view_);
+  result = d3d11_device_->CreateRenderTargetView(back_buffer, NULL, &debug_render_target_view_);
+  if (FAILED(result))
+  {
+    printf("Failed to create render target");
+    return false;
+  }
+
   back_buffer->Release();
   D3D11_TEXTURE2D_DESC depth_stencil_desc{};
 
@@ -141,8 +152,19 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size, vr::
   depth_stencil_desc.Usage = D3D11_USAGE_DEFAULT;
   depth_stencil_desc.CPUAccessFlags = 0;
   depth_stencil_desc.MiscFlags = 0;
-  d3d11_device_->CreateTexture2D(&depth_stencil_desc, NULL, &debug_depth_stencil_buffer_);
-  d3d11_device_->CreateDepthStencilView(debug_depth_stencil_buffer_, NULL, &debug_depth_stencil_view_);
+  result = d3d11_device_->CreateTexture2D(&depth_stencil_desc, NULL, &debug_depth_stencil_buffer_);
+  if (FAILED(result))
+  {
+    printf("Failed to create texture \n");
+    return false;
+  }
+
+  result = d3d11_device_->CreateDepthStencilView(debug_depth_stencil_buffer_, NULL, &debug_depth_stencil_view_);
+  if (FAILED(result))
+  {
+    printf("Failed to create depth stencil view \n");
+    return false;
+  }
 
 
   /*set up shaders and vertex buffers to render a triangle*/
@@ -150,30 +172,35 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size, vr::
   std::string ps_buf;
   ReadShader("VertexShader", vs_buf);
   result = d3d11_device_->CreateVertexShader(vs_buf.data(), vs_buf.length(), NULL, &vs_);
-
   if (FAILED(result))
   {
     printf("Failed to create vertex shader \n");
+    return false;
   }
 
   ReadShader("PixelShader", ps_buf);
   result = d3d11_device_->CreatePixelShader(ps_buf.data(), ps_buf.size(), NULL, &ps_);
-
   if (FAILED(result))
   {
     printf("Failed to create pixel shader \n");
+    return false;
   }
 
   // create input layout and set primitive topology
   result = d3d11_device_->CreateInputLayout(layout, sizeof(layout) / sizeof(D3D11_INPUT_ELEMENT_DESC), vs_buf.data(), vs_buf.size(), &vert_layout_);
+  if (FAILED(result))
+  {
+    printf("Failed to create input layout \n");
+    return false;
+  }
 
   // setup the debug shaders
   ReadShader("debug_vertex_shader", vs_buf);
   result = d3d11_device_->CreateVertexShader(vs_buf.data(), vs_buf.length(), NULL, &vs_debug_);
-
   if (FAILED(result))
   {
     printf("Failed to create vertex shader \n");
+    return false;
   }
 
   ReadShader("debug_pixel_shader", ps_buf);
@@ -182,6 +209,7 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size, vr::
   if (FAILED(result))
   {
     printf("Failed to create pixel shader \n");
+    return false;
   }
 
   result = d3d11_device_->CreateInputLayout(debug_layout,
@@ -200,9 +228,11 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size, vr::
   line_buffer_desc.StructureByteStride = NULL;
   line_buffer_desc.Usage = D3D11_USAGE_DEFAULT;
   result = d3d11_device_->CreateBuffer(&line_buffer_desc, NULL, &line_buffer_);
-
-
-  assert(vert_layout_ != nullptr);
+  if (FAILED(result))
+  {
+    printf("Failed create line buffer \n");
+    return false;
+  }
 
   // create the viewport for rendering the debug window
   debug_viewport_ = {};
@@ -213,26 +243,91 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size, vr::
   debug_viewport_.Width = (float)screen_size.x;
   debug_viewport_.Height = (float)screen_size.y;
 
-  // create constant buffer per object
-  D3D11_BUFFER_DESC cb_per_obj_desc {};
-  cb_per_obj_desc.ByteWidth = sizeof(constant_buffer);
-  cb_per_obj_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-  cb_per_obj_desc.CPUAccessFlags = NULL;
-  cb_per_obj_desc.MiscFlags = NULL;
-  cb_per_obj_desc.Usage = D3D11_USAGE_DEFAULT;
+  // create constant buffers
+  D3D11_BUFFER_DESC cb_buffer_desc{};
+  cb_buffer_desc.ByteWidth = sizeof(cb_per_object);
+  cb_buffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  cb_buffer_desc.CPUAccessFlags = NULL;
+  cb_buffer_desc.MiscFlags = NULL;
+  cb_buffer_desc.Usage = D3D11_USAGE_DEFAULT;
+  result = d3d11_device_->CreateBuffer(&cb_buffer_desc, NULL, &cb_per_object_buffer_);
+  if (FAILED(result))
+  {
+    printf("Failed create per object buffer \n");
+    return false;
+  }
 
-  result = d3d11_device_->CreateBuffer(&cb_per_obj_desc, NULL, &cb_per_object_buffer_);
+  cb_buffer_desc = {};
+  cb_buffer_desc.ByteWidth = sizeof(cb_material_per_mesh);
+  cb_buffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  cb_buffer_desc.CPUAccessFlags = NULL;
+  cb_buffer_desc.MiscFlags = NULL;
+  cb_buffer_desc.Usage = D3D11_USAGE_DEFAULT;
+  result = d3d11_device_->CreateBuffer(&cb_buffer_desc, NULL, &cb_material_per_object_buffer_);
+  if (FAILED(result))
+  {
+    printf("Failed create material per object buffer \n");
+    return false;
+  }
 
+  cb_buffer_desc = {};
+  cb_buffer_desc.ByteWidth = sizeof(cb_lights_per_frame);
+  cb_buffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+  cb_buffer_desc.CPUAccessFlags = NULL;
+  cb_buffer_desc.MiscFlags = NULL;
+  cb_buffer_desc.Usage = D3D11_USAGE_DEFAULT;
+  result = d3d11_device_->CreateBuffer(&cb_buffer_desc, NULL, &cb_lights_per_draw_buffer_);
+  if (FAILED(result))
+  {
+    printf("Failed create lights per draw buffer \n");
+    return false;
+  }
+
+
+  // create rasterizer states
   D3D11_RASTERIZER_DESC wireframe_desc{};
   wireframe_desc.FillMode = D3D11_FILL_WIREFRAME;
   wireframe_desc.CullMode = D3D11_CULL_NONE;
   result = d3d11_device_->CreateRasterizerState(&wireframe_desc, &wireframe_);
+  if (FAILED(result))
+  {
+    printf("Failed create wireframe rasterizer state \n");
+    return false;
+  }
 
   D3D11_RASTERIZER_DESC solid_desc {};
   solid_desc.FillMode = D3D11_FILL_SOLID;
   solid_desc.CullMode = D3D11_CULL_BACK;
   result = d3d11_device_->CreateRasterizerState(&solid_desc, &solid_);
+  if (FAILED(result))
+  {
+    printf("Failed create solid rasterizer state \n");
+    return false;
+  }
   d3d11_device_context_->RSSetState(solid_);
+
+  D3D11_SAMPLER_DESC sampler_desc{};
+  sampler_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+  sampler_desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+  sampler_desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+  sampler_desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+  sampler_desc.MipLODBias = 0.0f;
+  sampler_desc.MaxAnisotropy = 1;
+  sampler_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+  sampler_desc.BorderColor[0] = 1.0f;
+  sampler_desc.BorderColor[1] = 1.0f;
+  sampler_desc.BorderColor[2] = 1.0f;
+  sampler_desc.BorderColor[3] = 1.0f;
+  sampler_desc.MinLOD = -FLT_MAX;
+  sampler_desc.MaxLOD = FLT_MAX;
+
+  result = d3d11_device_->CreateSamplerState(&sampler_desc, &default_sampler_);
+  if (FAILED(result))
+  {
+    printf("failed to create default texture sampler.");
+    return false;
+  }
+
 
   if (vr_system_ != nullptr)
   {
@@ -240,13 +335,13 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size, vr::
     render_models = (vr::IVRRenderModels*)vr::VR_GetGenericInterface(vr::IVRRenderModels_Version, &err);
     if (!render_models)
     {
-      printf("unable to get render models");
+      printf("unable to get render models \n");
     }
     uint32_t eye_width;
     uint32_t eye_height;
     vr_system_->GetRecommendedRenderTargetSize(&eye_width, &eye_height);
-    left_eye_ = new RenderTexture();
-    right_eye_ = new RenderTexture();
+    left_eye_ = new VRRenderTexture();
+    right_eye_ = new VRRenderTexture();
 
     left_eye_->Create(d3d11_device_, eye_width, eye_height);
     right_eye_->Create(d3d11_device_, eye_width, eye_height);
@@ -278,6 +373,7 @@ bool D3D11Renderer::Intialize(HWND window_handle, const Vec2u& screen_size, vr::
   return true;
 }
 
+//-------------------------------------------------------------------------------------------------
 bool D3D11Renderer::Release()
 {
   swap_chain_->Release();
@@ -301,11 +397,14 @@ bool D3D11Renderer::Release()
   ps_->Release();
   vert_layout_->Release();
   cb_per_object_buffer_->Release();
+  cb_lights_per_draw_buffer_->Release();
+  cb_material_per_object_buffer_->Release();
   wireframe_->Release();
   solid_->Release();
   return true;
 }
 
+//-------------------------------------------------------------------------------------------------
 void D3D11Renderer::SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
   float mult = 1 / 255;
@@ -315,6 +414,7 @@ void D3D11Renderer::SetClearColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
   clear_color_[3] = { mult * a };
 }
 
+//-------------------------------------------------------------------------------------------------
 void D3D11Renderer::AddLine(const Vec3& from, const Vec3& to, const Vec4u8& color)
 {
   if (current_line_count_ >= max_line_count_)
@@ -327,10 +427,55 @@ void D3D11Renderer::AddLine(const Vec3& from, const Vec3& to, const Vec4u8& colo
   ++current_line_count_;
 }
 
+void D3D11Renderer::AddDirectionalLight(const Vec3 & direction, const resources::Texel & color)
+{
+  Light l;
+  l.position = Vec4(0.0f);
+  l.direction = Vec4(glm::normalize(direction), 1.0f);
+  l.color = color.GetNormalized();
+  l.type = (int)lightTypes::kDirectional;
+  l.const_attenuation = 1.0f;
+  l.linear_attenuation = 0.08f;
+  l.quad_attenuation = 0.0f;
+  l.spotangle = 0.0f;
+  lights_.push_back(l);
+}
+
+
+void D3D11Renderer::AddPointLight(const Vec3 & position, const resources::Texel& color)
+{
+  Light l;
+  l.position = Vec4(position, 1.0f);
+  l.direction = Vec4(0,0,0,1);
+  l.color = color.GetNormalized();
+  l.type = (int)lightTypes::kPoint;
+  l.const_attenuation = 0.5f;
+  l.linear_attenuation = 0.02f;
+  l.quad_attenuation = 0.0f;
+  l.spotangle = 0.0f;
+  lights_.push_back(l);
+}
+
+void D3D11Renderer::AddSpotLight(const Vec3& position, const Vec3& direction, const float& spot_angle, const resources::Texel & color)
+{
+  Light l;
+  l.position = Vec4(position, 1.0f);
+  l.direction = Vec4(glm::normalize(direction), 1.0f);
+  l.color = color.GetNormalized();
+  l.type = (int)lightTypes::kSpot;
+  l.const_attenuation = 0.5f;
+  l.linear_attenuation = 0.02f;
+  l.quad_attenuation = 0.0f;
+  l.spotangle = glm::radians(spot_angle);
+  lights_.push_back(l);
+}
+
+//-------------------------------------------------------------------------------------------------
 void D3D11Renderer::Clear()
 {
 }
 
+//-------------------------------------------------------------------------------------------------
 void D3D11Renderer::Present(Input* input)
 {
   if (vr_system_)
@@ -361,18 +506,27 @@ void D3D11Renderer::Present(Input* input)
   }
 }
 
+//-------------------------------------------------------------------------------------------------
 void D3D11Renderer::SetCamera(Camera * cam)
 {
   current_camera_ = cam;
 }
 
-void D3D11Renderer::ReleaseFromGPU(ModelHandle handle)
+//-------------------------------------------------------------------------------------------------
+void D3D11Renderer::ReleaseFromGPU(GPUModelResourceHandle handle)
 {
   handle->idx_buffer_->Release();
   handle->vert_buffer_->Release();
 }
 
-ModelHandle D3D11Renderer::PushToGPU(const resources::Model& model)
+//-------------------------------------------------------------------------------------------------
+void D3D11Renderer::ReleaseFromGPU(GPUTextureResourceHandle handle)
+{
+  handle->texture_->Release();
+}
+
+//-------------------------------------------------------------------------------------------------
+bool D3D11Renderer::PushToGPU( resources::Model& model)
 {
   ID3D11Buffer* vertex_buffer;
   ID3D11Buffer* index_buffer;
@@ -414,7 +568,6 @@ ModelHandle D3D11Renderer::PushToGPU(const resources::Model& model)
     vertex_it += mesh.vertices().size();
     index_it += mesh.indices().size();
   }
-
   D3D11_SUBRESOURCE_DATA vertex_data{};
   vertex_data.pSysMem = vertex_array_base;
   d3d11_device_->CreateBuffer(&vertex_buffer_desc, &vertex_data, &vertex_buffer);
@@ -426,34 +579,98 @@ ModelHandle D3D11Renderer::PushToGPU(const resources::Model& model)
   delete[] vertex_array_base;
   delete[] index_array_base;
 
-  return std::make_shared<GPUModel>(vertex_buffer, index_buffer, num_idices, vert_offsets);
+  GPUModelResourceHandle* handle = model.gpu_handle();
+  *handle = std::make_shared<GPUModelResource>(vertex_buffer, index_buffer, num_idices, vert_offsets);
+  return true;
 }
 
+//-------------------------------------------------------------------------------------------------
+bool D3D11Renderer::PushToGPU(resources::Texture& texture)
+{
+  D3D11_TEXTURE2D_DESC texture_desc{};
+  texture_desc.Width = texture.width();
+  texture_desc.Height = texture.height();
+  texture_desc.MipLevels = 1;
+  texture_desc.ArraySize = 1;
+  texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  texture_desc.SampleDesc.Count = 1;
+  texture_desc.Usage = D3D11_USAGE_DEFAULT;
+  texture_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+  ID3D11Texture2D* tex;
+  D3D11_SUBRESOURCE_DATA data;
+  data.pSysMem = texture.pixels();
+  data.SysMemPitch = texture.width() * sizeof resources::Texel;
+  
+  if (FAILED(d3d11_device_->CreateTexture2D(&texture_desc, &data, &tex)))
+  {
+    printf("failed to create texture for model");
+    return false;
+  }
+
+  D3D11_SHADER_RESOURCE_VIEW_DESC shader_resource_desc{};
+  shader_resource_desc.Format = texture_desc.Format;
+  shader_resource_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+  shader_resource_desc.Texture2D.MostDetailedMip = 0;
+  shader_resource_desc.Texture2D.MipLevels = 1;
+
+  ID3D11ShaderResourceView* srv;
+  if (FAILED(d3d11_device_->CreateShaderResourceView(tex, &shader_resource_desc, &srv)))
+  {
+    printf("failed to create Shader resource view");
+    return false;
+  }
+  tex->Release();
+
+  GPUTextureResourceHandle* handle = texture.gpu_handle();
+  *handle = std::make_unique<GPUTextureResource>(srv);
+  return true;
+}
+
+//-------------------------------------------------------------------------------------------------
 DrawCall D3D11Renderer::DrawModel(DrawCall call, RenderTargets render_target)
 {
-  if ( !call.handle )
+  if ( !call.model )
   {
     return call;
   }
   cb_per_obj.world = call.world;
   GetViewProjectionMatrix(render_target, cb_per_obj.view, cb_per_obj.persp);
+  cb_per_obj.invers_transpose_world = glm::transpose(glm::inverse(call.world));
+
   d3d11_device_context_->UpdateSubresource(cb_per_object_buffer_, 0, NULL, &cb_per_obj, 0, 0);
   d3d11_device_context_->VSSetConstantBuffers(0, 1, &cb_per_object_buffer_);
 
+  GPUModelResourceHandle handle = *call.model->gpu_handle();
   uint32_t stride = sizeof(resources::Vertex);
   uint32_t offset = 0;
-  d3d11_device_context_->IASetVertexBuffers(0, 1, &call.handle->vert_buffer_, &stride, &offset);
-  d3d11_device_context_->IASetIndexBuffer(call.handle->idx_buffer_, DXGI_FORMAT_R16_UINT, 0);
+  d3d11_device_context_->IASetVertexBuffers(0, 1, &handle->vert_buffer_, &stride, &offset);
+  d3d11_device_context_->IASetIndexBuffer(handle->idx_buffer_, DXGI_FORMAT_R16_UINT, 0);
 
   size_t cur_pos = 0;
-  for (size_t i = 0; i < call.handle->vert_offsets_.size(); ++i)
+  for (size_t i = 0; i < handle->vert_offsets_.size(); ++i)
   {
-    d3d11_device_context_->DrawIndexed((uint32_t)call.handle->num_idices_[i], (uint32_t)cur_pos, (int32_t)call.handle->vert_offsets_[i]);
-    cur_pos += call.handle->num_idices_[i];
+    cb_material_per_mesh mcb;
+    resources::Material mat = call.model->meshes()[i].material();
+    mcb.diffuse = mat.base_color_factor.GetNormalized();
+    //mcb.emissive = mat.emissive_factor.GetNormalized();
+   
+     
+    d3d11_device_context_->UpdateSubresource(cb_material_per_object_buffer_, 0, NULL, &mcb, 0, 0);
+    d3d11_device_context_->PSSetConstantBuffers(0, 1, &cb_material_per_object_buffer_);
+    GPUTextureResourceHandle tex = *mat.base_color_texture->gpu_handle();
+    if (tex != nullptr)
+    {
+      d3d11_device_context_->PSSetShaderResources(0, 1, &(*mat.base_color_texture->gpu_handle())->texture_);
+    }
+
+    d3d11_device_context_->DrawIndexed((uint32_t)handle->num_idices_[i], (uint32_t)cur_pos, (int32_t)handle->vert_offsets_[i]);
+    cur_pos += handle->num_idices_[i];
   }
   return call;
 }
 
+//-------------------------------------------------------------------------------------------------
 void D3D11Renderer::DrawDebug(RenderTargets render_target)
 {
   d3d11_device_context_->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
@@ -473,6 +690,7 @@ void D3D11Renderer::DrawDebug(RenderTargets render_target)
   d3d11_device_context_->Draw(current_line_count_ * 2, 0);
 }
 
+//-------------------------------------------------------------------------------------------------
 void D3D11Renderer::GetViewProjectionMatrix(RenderTargets& target, Mat44& view, Mat44& projection)
 {
   switch (target)
@@ -492,11 +710,13 @@ void D3D11Renderer::GetViewProjectionMatrix(RenderTargets& target, Mat44& view, 
   }
 }
 
-void D3D11Renderer::AddToDrawQueue(ModelHandle handle, const Mat44& world)
+//-------------------------------------------------------------------------------------------------
+void D3D11Renderer::AddToDrawQueue(std::shared_ptr<resources::Model> handle, const Mat44& world)
 {
    draw_queue_.push( { handle  , world } );
 }
 
+//-------------------------------------------------------------------------------------------------
 void D3D11Renderer::SetRenderState(RenderModes mode)
 {
   switch (mode)
@@ -510,76 +730,80 @@ void D3D11Renderer::SetRenderState(RenderModes mode)
   }
 }
 
+//-------------------------------------------------------------------------------------------------
 void D3D11Renderer::RenderDrawQueue(Input* input)
 {
-  if (vr_system_ != nullptr)
-  {
-    d3d11_device_context_->RSSetViewports(1, &vr_viewport_);
-    // setup the vr camera
-    vr::HmdMatrix34_t pose = vr_system_->GetEyeToHeadTransform(vr::Eye_Left);
-    vr_cam.left_eye_view_ = VrMat34ToMat44(pose);
-    vr_cam.left_eye_view_ = glm::inverse(vr_cam.left_eye_view_);
+  // if (vr_system_ != nullptr)
+  // {
+  //   d3d11_device_context_->RSSetViewports(1, &vr_viewport_);
+  //   // setup the vr camera
+  //   vr::HmdMatrix34_t pose = vr_system_->GetEyeToHeadTransform(vr::Eye_Left);
+  //   vr_cam.left_eye_view_ = VrMat34ToMat44(pose);
+  //   vr_cam.left_eye_view_ = glm::inverse(vr_cam.left_eye_view_);
+  // 
+  //   pose = vr_system_->GetEyeToHeadTransform(vr::Eye_Right);
+  //   vr_cam.right_eye_view_ = VrMat34ToMat44(pose);
+  //   vr_cam.right_eye_view_ = glm::inverse(vr_cam.right_eye_view_);
+  // 
+  //   vr::HmdMatrix44_t projection = vr_system_->GetProjectionMatrix(vr::Eye_Left, 1.0f, 10000.0f);
+  //   vr_cam.left_eye_projection_ = VrMat44ToMat44(projection); 
+  // 
+  //   projection = vr_system_->GetProjectionMatrix(vr::Eye_Right, 1.0f, 10000.0f);
+  //   vr_cam.right_eye_projection_ = VrMat44ToMat44(projection);
+  // 
+  //   vr_cam.view_left_ = glm::transpose(vr_cam.left_eye_view_ * hmd_pose);
+  //   vr_cam.view_right_ = glm::transpose(vr_cam.right_eye_view_ * hmd_pose);
+  // 
+  //   // clear the left eye texture
+  //   ID3D11RenderTargetView* render_target = left_eye_->render_target();
+  //   d3d11_device_context_->OMSetRenderTargets(1, &render_target, vr_depth_stencil_view_);
+  //   d3d11_device_context_->ClearRenderTargetView(render_target, clear_color_);
+  //   d3d11_device_context_->ClearDepthStencilView(vr_depth_stencil_view_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+  // 
+  //   // set the shader to use the model shader
+  //   d3d11_device_context_->VSSetShader(vs_, 0, 0);
+  //   d3d11_device_context_->PSSetShader(ps_, 0, 0);
+  //   d3d11_device_context_->IASetInputLayout(vert_layout_);
+  // 
+  //   // draw the scene to the left eye texture
+  //   for (size_t i = 0; i < draw_queue_.size(); ++i)
+  //   {
+  //     DrawCall handle = draw_queue_.front();
+  //     draw_queue_.pop();
+  //     draw_queue_.push(DrawModel(handle, RenderTargets::kLeftEye));
+  //   }
+  //   d3d11_device_context_->VSSetShader(vs_debug_, 0, 0);
+  //   d3d11_device_context_->PSSetShader(ps_debug_, 0, 0);
+  //   d3d11_device_context_->IASetInputLayout(vert_layout_debug_);
+  //   DrawDebug(RenderTargets::kLeftEye);
+  // 
+  //   // clear the right eye texture
+  //   render_target = right_eye_->render_target();
+  //   d3d11_device_context_->OMSetRenderTargets(1, &render_target, vr_depth_stencil_view_);
+  //   d3d11_device_context_->ClearRenderTargetView(render_target, clear_color_);
+  //   d3d11_device_context_->ClearDepthStencilView(vr_depth_stencil_view_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+  // 
+  //   // set the shader to use the model shgader
+  //   d3d11_device_context_->VSSetShader(vs_, 0, 0);
+  //   d3d11_device_context_->PSSetShader(ps_, 0, 0);
+  //   d3d11_device_context_->IASetInputLayout(vert_layout_);
+  // 
+  //   // draw the scene to the right eye texture
+  //   // Likely a different container needs to be used.
+  //   for (size_t i = 0; i < draw_queue_.size(); ++i)
+  //   {
+  //     DrawCall handle = draw_queue_.front();
+  //     draw_queue_.pop();
+  //     draw_queue_.push(DrawModel(handle, RenderTargets::kRightEye));
+  //   }
+  //   d3d11_device_context_->VSSetShader(vs_debug_, 0, 0);
+  //   d3d11_device_context_->PSSetShader(ps_debug_, 0, 0);
+  //   d3d11_device_context_->IASetInputLayout(vert_layout_debug_);
+  //   DrawDebug(RenderTargets::kRightEye);
+  // }
 
-    pose = vr_system_->GetEyeToHeadTransform(vr::Eye_Right);
-    vr_cam.right_eye_view_ = VrMat34ToMat44(pose);
-    vr_cam.right_eye_view_ = glm::inverse(vr_cam.right_eye_view_);
-
-    vr::HmdMatrix44_t projection = vr_system_->GetProjectionMatrix(vr::Eye_Left, 1.0f, 10000.0f);
-    vr_cam.left_eye_projection_ = VrMat44ToMat44(projection); 
-
-    projection = vr_system_->GetProjectionMatrix(vr::Eye_Right, 1.0f, 10000.0f);
-    vr_cam.right_eye_projection_ = VrMat44ToMat44(projection);
-
-    vr_cam.view_left_ = glm::transpose(vr_cam.left_eye_view_ * hmd_pose);
-    vr_cam.view_right_ = glm::transpose(vr_cam.right_eye_view_ * hmd_pose);
-
-    // clear the left eye texture
-    ID3D11RenderTargetView* render_target = left_eye_->render_target();
-    d3d11_device_context_->OMSetRenderTargets(1, &render_target, vr_depth_stencil_view_);
-    d3d11_device_context_->ClearRenderTargetView(render_target, clear_color_);
-    d3d11_device_context_->ClearDepthStencilView(vr_depth_stencil_view_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-    // set the shader to use the model shader
-    d3d11_device_context_->VSSetShader(vs_, 0, 0);
-    d3d11_device_context_->PSSetShader(ps_, 0, 0);
-    d3d11_device_context_->IASetInputLayout(vert_layout_);
-
-    // draw the scene to the left eye texture
-    for (size_t i = 0; i < draw_queue_.size(); ++i)
-    {
-      DrawCall handle = draw_queue_.front();
-      draw_queue_.pop();
-      draw_queue_.push(DrawModel(handle, RenderTargets::kLeftEye));
-    }
-    d3d11_device_context_->VSSetShader(vs_debug_, 0, 0);
-    d3d11_device_context_->PSSetShader(ps_debug_, 0, 0);
-    d3d11_device_context_->IASetInputLayout(vert_layout_debug_);
-    DrawDebug(RenderTargets::kLeftEye);
-
-    // clear the right eye texture
-    render_target = right_eye_->render_target();
-    d3d11_device_context_->OMSetRenderTargets(1, &render_target, vr_depth_stencil_view_);
-    d3d11_device_context_->ClearRenderTargetView(render_target, clear_color_);
-    d3d11_device_context_->ClearDepthStencilView(vr_depth_stencil_view_, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-
-    // set the shader to use the model shgader
-    d3d11_device_context_->VSSetShader(vs_, 0, 0);
-    d3d11_device_context_->PSSetShader(ps_, 0, 0);
-    d3d11_device_context_->IASetInputLayout(vert_layout_);
-
-    // draw the scene to the right eye texture
-    // Likely a different container needs to be used.
-    for (size_t i = 0; i < draw_queue_.size(); ++i)
-    {
-      DrawCall handle = draw_queue_.front();
-      draw_queue_.pop();
-      draw_queue_.push(DrawModel(handle, RenderTargets::kRightEye));
-    }
-    d3d11_device_context_->VSSetShader(vs_debug_, 0, 0);
-    d3d11_device_context_->PSSetShader(ps_debug_, 0, 0);
-    d3d11_device_context_->IASetInputLayout(vert_layout_debug_);
-    DrawDebug(RenderTargets::kRightEye);
-  }
+  // d3d11_device_context_->UpdateSubresource()
+  
   d3d11_device_context_->RSSetViewports(1, &debug_viewport_);
   d3d11_device_context_->OMSetRenderTargets(1, &debug_render_target_view_, debug_depth_stencil_view_);
   d3d11_device_context_->ClearRenderTargetView(debug_render_target_view_, clear_color_);
@@ -588,6 +812,29 @@ void D3D11Renderer::RenderDrawQueue(Input* input)
   // set the shader to use the model shgader
   d3d11_device_context_->VSSetShader(vs_, 0, 0);
   d3d11_device_context_->PSSetShader(ps_, 0, 0);
+  d3d11_device_context_->PSSetSamplers(0, 1, &default_sampler_);
+
+
+
+  // update the light constant buffer
+  cb_lights_per_frame lcb;
+  lcb.eye_position = Vec4(current_camera_->transform.position(), 1.0f);
+  lcb.global_ambient = Vec4(1,1,1,1);
+  if (lights_.size() > MAX_LIGHTS)
+  {
+    printf("light buffer exceeds maximum capacity. only 8 lights are allowed, %llu were added", lights_.size());
+    memcpy_s(lcb.lights, sizeof(Light) * MAX_LIGHTS, lights_.data(), sizeof(Light) * MAX_LIGHTS);
+  }
+  else
+  {
+    memcpy_s(lcb.lights, sizeof(Light) * lights_.size(), lights_.data(), sizeof(Light) *lights_.size());
+    lcb.num_lights = (int)lights_.size();
+  }
+  lights_.clear();
+
+  d3d11_device_context_->UpdateSubresource(cb_lights_per_draw_buffer_, 0, NULL, &lcb, 0, 0);
+  d3d11_device_context_->PSSetConstantBuffers(1, 1, &cb_lights_per_draw_buffer_);
+
   d3d11_device_context_->IASetInputLayout(vert_layout_);
 
   // draw the scene a third time with a free cam so we can debug along side the scene
@@ -603,6 +850,7 @@ void D3D11Renderer::RenderDrawQueue(Input* input)
   DrawDebug(RenderTargets::kDebugCamera);
 }
 
+//-------------------------------------------------------------------------------------------------
 void D3D11Renderer::ReadShader(const char* shader_name, std::string& buffer)
 {
   std::string file_path = "./shaders/";
@@ -621,6 +869,7 @@ void D3D11Renderer::ReadShader(const char* shader_name, std::string& buffer)
   }
 }
 
+//-------------------------------------------------------------------------------------------------
 void D3D11Renderer::UpdatateHmdPose()
 {
   if (!vr_system_)
@@ -644,86 +893,4 @@ void D3D11Renderer::UpdatateHmdPose()
   {
     printf("pose not valid");
   }
-}
-
-D3D11Renderer::RenderTexture::RenderTexture() :
-  texture_(nullptr),
-  render_target_(nullptr),
-  shader_resource_(nullptr)
-{
-}
-
-bool D3D11Renderer::RenderTexture::Create(ID3D11Device* d3d11_device, uint32_t width, uint32_t height)
-{
-  HRESULT result;
-
-  D3D11_TEXTURE2D_DESC texture_desc{};
-  texture_desc.Width = width;
-  texture_desc.Height = height;
-  texture_desc.MipLevels = 1;
-  texture_desc.ArraySize = 1;
-  texture_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-  texture_desc.SampleDesc.Count = 1;
-  texture_desc.Usage = D3D11_USAGE_DEFAULT;
-  texture_desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-
-  result = d3d11_device->CreateTexture2D(&texture_desc, NULL, &texture_);
-  if (FAILED(result))
-  {
-    printf("failed to create texture");
-    return false;
-  }
-
-  D3D11_RENDER_TARGET_VIEW_DESC render_target_desc{};
-  render_target_desc.Format = texture_desc.Format;
-  render_target_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-  render_target_desc.Texture2D.MipSlice = 0;
-
-  result = d3d11_device->CreateRenderTargetView(texture_, &render_target_desc, &render_target_);
-  if (FAILED(result))
-  {
-    printf("failed to create render target");
-    return false;
-  }
-
-  D3D11_SHADER_RESOURCE_VIEW_DESC shader_resource_desc{};
-  shader_resource_desc.Format = texture_desc.Format;
-  shader_resource_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-  shader_resource_desc.Texture2D.MostDetailedMip = 0;
-  shader_resource_desc.Texture2D.MipLevels = 1;
-
-  result = d3d11_device->CreateShaderResourceView(texture_, &shader_resource_desc, &shader_resource_);
-  if (FAILED(result))
-  {
-    printf("failed to create shader resource");
-    return false;
-  }
-
-  return true;
-}
-
-void D3D11Renderer::RenderTexture::Release()
-{
-  texture_->Release();
-  render_target_->Release();
-  shader_resource_->Release();
-
-  texture_ = nullptr;
-  render_target_ = nullptr;
-  shader_resource_ = nullptr;
-}
-
-ID3D11Texture2D * D3D11Renderer::RenderTexture::texture()
-{
-  return texture_;
-}
-
-ID3D11RenderTargetView *  D3D11Renderer::RenderTexture::render_target()
-{
-  return render_target_;
-}
-
-ID3D11ShaderResourceView * D3D11Renderer::RenderTexture::shader_resource()
-{
-  return shader_resource_;
 }

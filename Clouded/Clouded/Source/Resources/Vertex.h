@@ -7,7 +7,7 @@ namespace resources
   {
     Vec3 pos;
     Vec3 norm;
-    Vec4 tang; // xyz is tangent, w is handedness
     Vec2 uv;
+    Vec4 tang; // xyz is tangent, w is handedness
   };
 }
